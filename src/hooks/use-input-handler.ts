@@ -234,6 +234,10 @@ export function useInputHandler({
         if (providers.length > 0) {
           const selectedProviderId = providers[selectedProviderIndex];
           manager.updateUserSetting("active_provider", selectedProviderId);
+          // Also check project settings if they override?
+          // But setActiveProvider updates local state which drives the UI.
+          setActiveProvider(selectedProviderId);
+
           setChatHistory(prev => [
             ...prev,
             {
@@ -292,13 +296,13 @@ export function useInputHandler({
             ...prev,
             {
               type: "assistant",
-              content: `📝 To edit API key for ${selectedProviderId}, run: /provider config`,
+              content: `📝 Editing API key for ${selectedProviderId}. Press Enter after pasting key.`,
               timestamp: new Date(),
             },
           ]);
           setShowProviderSelection(false);
           // Maybe autofill input?
-          setInput("/provider config");
+          setInput(`/provider set-key ${selectedProviderId} `);
         }
         return true;
       }
@@ -637,6 +641,76 @@ Config Commands:
     if (trimmedInput === "/provider") {
       setShowProviderSelection(true);
       setSelectedProviderIndex(0);
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput === "/provider config") {
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content:
+            "⚠️ Interactive configuration cannot be run inside the chat session.\n\nPlease run `super-agent provider config` in a separate terminal, or use:\n`/provider set-key <provider> <key>` to set an API key directly.",
+          timestamp: new Date(),
+        },
+      ]);
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput.startsWith("/provider set-key ")) {
+      const args = trimmedInput
+        .replace("/provider set-key ", "")
+        .trim()
+        .split(" ");
+      const providerId = args[0];
+      const key = args.slice(1).join(" "); // Allow spaces? API keys usually don't have spaces but safe to join.
+
+      if (!providerId || !key) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: "❌ Usage: /provider set-key <provider> <api_key>",
+            timestamp: new Date(),
+          },
+        ]);
+        clearInput();
+        return true;
+      }
+
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+
+      if (settings.providers && settings.providers[providerId]) {
+        // Update the specific provider's API key
+        const newProviders = { ...settings.providers };
+        newProviders[providerId] = {
+          ...newProviders[providerId],
+          api_key: key,
+        };
+
+        manager.updateUserSetting("providers", newProviders);
+
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `✅ API Key for ${providerId} updated.`,
+            timestamp: new Date(),
+          },
+        ]);
+      } else {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `❌ Provider '${providerId}' not found.`,
+            timestamp: new Date(),
+          },
+        ]);
+      }
       clearInput();
       return true;
     }

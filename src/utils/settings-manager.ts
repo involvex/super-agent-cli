@@ -390,13 +390,12 @@ export class SettingsManager {
     }
 
     // If provider is active but not in PROVIDER_MODELS (e.g. custom/new provider like 'zai')
-    // We should probably return a generic list or allow freeform.
-    // For now, return empty array to trigger "Custom..." or just fallback
-    if (
-      activeProvider &&
-      this.getEffectiveSettings().providers[activeProvider]
-    ) {
-      return [];
+    // Return the currently configured model so it appears in the list
+    if (activeProvider) {
+      const config = this.getEffectiveSettings().providers[activeProvider];
+      if (config && config.model) {
+        return [config.model];
+      }
     }
 
     // Fallback default list if provider unknown
