@@ -1,5 +1,5 @@
 import { MarkdownRenderer } from "../utils/markdown-renderer";
-import { ChatEntry } from "../../agent/grok-agent";
+import { ChatEntry } from "../../agent/super-agent";
 import { DiffRenderer } from "./diff-renderer";
 import { Box, Text } from "ink";
 import React from "react";

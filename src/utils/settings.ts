@@ -3,6 +3,6 @@
 
 export {
   getSettingsManager,
-  UserSettings,
-  ProjectSettings,
+  type ProjectSettings,
+  type UserSettings,
 } from "./settings-manager";

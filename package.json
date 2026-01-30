@@ -23,9 +23,9 @@
   },
   "scripts": {
     "prebuild": "bun run format && bun run lint:fix && bun run typecheck",
-    "build": "tsc",
-    "build:bun": "bun run tsc",
-    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir ./dist --target node --packages external --format esm",
+    "build:bun": "bun build src/index.ts --outdir ./dist --target node --packages external --format esm",
+    "dev": "bun run --watch src/index.ts",
     "dev:node": "tsx src/index.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

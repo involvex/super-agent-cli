@@ -27,7 +27,7 @@ Build a Agentic Coding Cli Tool using Bun. Support multiple LLMs like Grok, GPT,
 - [ ] Add support for more Commands
 - [ ] Add support for more Features
 - [ ] Build a clean production ready CLI tool
-- [ ] Update tsconfig.json to resolve file paths/ imports /endings (.ts, .tsx, .js, .jsx, .json, .mjs, .cjs, .mts, .cts)
-- [ ] Rename from grok-cli to super-agent-cli (update config files, commands, etc.)
-- [ ] Setup Dev Environment (bun run dev willhotreload from src/index.ts)
+- [x] Update tsconfig.json to resolve file paths/ imports /endings (.ts, .tsx, .js, .jsx, .json, .mjs, .cjs, .mts, .cts)
+- [x] Rename from grok-cli to super-agent-cli (update config files, commands, etc.)
+- [x] Setup Dev Environment (bun run dev willhotreload from src/index.ts)
 - [ ] Write tests

@@ -1,0 +1,171 @@
+{
+  "active_provider": "zai",
+  "providers": {
+    "zai": {
+      "id": "zai",
+      "provider": "zai",
+      "model": "MODEL_NAME",
+      "api_key": "API_KEY",
+      "base_url": "BASE_URL" /* optional */,
+      "default_model": "MODEL_NAME"
+    },
+    "openai": {
+      "id": "openai",
+      "provider": "openai",
+      "model": "MODEL_NAME",
+      "api_key": "API_KEY",
+      "base_url": "BASE_URL" /* optional */,
+      "default_model": "MODEL_NAME"
+    },
+    "gemini": {
+      "id": "gemini",
+      "provider": "gemini",
+      "model": "MODEL_NAME",
+      "api_key": "API_KEY",
+      "base_url": "BASE_URL" /* optional */,
+      "default_model": "MODEL_NAME"
+    },
+    "claude": {
+      "id": "claude",
+      "provider": "claude",
+      "model": "MODEL_NAME",
+      "api_key": "API_KEY",
+      "base_url": "BASE_URL" /* optional */,
+      "default_model": "MODEL_NAME"
+    },
+    "openrouter": {
+      "id": "openrouter",
+      "provider": "openrouter",
+      "model": "MODEL_NAME",
+      "api_key": "API_KEY",
+      "base_url": "BASE_URL" /* optional */,
+      "default_model": "MODEL_NAME"
+    }
+  },
+  "ui": {
+    "theme": "dark",
+    "custom_theme_path": "path/to/theme.json" /* optional */,
+    "show_memory_usage": true,
+    "show_token_usage": true,
+    "show_context": true,
+    "showModelInfoInChat": true
+  },
+  "mcpServers": {
+    "server1": {
+      "command": "command (npx, node, bun, etc)",
+      "args": ["arg1", "arg2"],
+      "env": {
+        "VAR1": "value1",
+        "VAR2": "value2"
+      }
+    }
+  },
+  "plugins": {
+    "allowed_plugins": ["plugin1", "plugin2", "plugin3"],
+    "plugins": [
+      {
+        "name": "plugin1" /* path will be ./super-agent/plugins/plugin1 inside Project folder. For global config path will be ~/.super-agent/plugins/plugin1 */
+      }
+    ]
+  },
+  "tools": {
+    "allowed_tools": ["tool1", "tool2", "tool3"],
+    "tools": [
+      {
+        "name": "tool1" /* commands like npm, bun, etc */,
+        "enabled": true
+      }
+    ]
+  },
+  "hooks": {
+    "session_start": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    },
+    "session_end": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    },
+    "before_tool_use": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    },
+    "after_tool_use": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    },
+    "before_plugin_use": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    },
+    "after_plugin_use": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    },
+    "before_response": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    },
+    "after_response": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    },
+    "before_command_execution": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    },
+    "after_command_execution": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    },
+    "before_user_input": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    },
+    "after_user_input": {
+      "type": "command / script / context",
+      "command": "command (npx, node, bun, etc)"
+    }
+  },
+  "auto_edit": {
+    "enabled": true,
+    "default_state": "enabled"
+  },
+  "modes": {
+    "active_mode": "plan",
+    "default_mode": "plan",
+    "modes": [
+      {
+        "name": "plan",
+        "description": "Plan mode",
+        "enabled": true,
+        "prompt": "You are a helpful assistant."
+      },
+      {
+        "name": "code",
+        "description": "Code mode",
+        "enabled": true,
+        "prompt": "You are a helpful coding assistant."
+      },
+      {
+        "name": "debug",
+        "description": "Debug mode",
+        "enabled": true,
+        "prompt": "You are a helpful debugging assistant."
+      }
+    ]
+  },
+  "env": {
+    "": ""
+  },
+  "context": {
+    "fileName": ["Readme.md", "Agents.md", ".super-agent/Agents.md"]
+  },
+  "experimental": {
+    "checkpointing": {
+      "enabled": true,
+      "auto_save": true,
+      "auto_load": true
+    }
+  }
+}

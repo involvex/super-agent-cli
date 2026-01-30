@@ -1,14 +1,14 @@
 import { ConfirmationService } from "../utils/confirmation-service";
-import { useEnhancedInput, Key } from "./use-enhanced-input";
-import { GrokAgent, ChatEntry } from "../agent/grok-agent";
-import { useState, useMemo, useEffect } from "react";
+import { Key, useEnhancedInput } from "./use-enhanced-input";
+import { ChatEntry, SuperAgent } from "../agent/super-agent";
+import { useEffect, useMemo, useState } from "react";
 import { useInput } from "ink";
 
 import { filterCommandSuggestions } from "../ui/components/command-suggestions";
 import { loadModelConfig, updateCurrentModel } from "../utils/model-config";
 
 interface UseInputHandlerProps {
-  agent: GrokAgent;
+  agent: SuperAgent;
   chatHistory: ChatEntry[];
   setChatHistory: React.Dispatch<React.SetStateAction<ChatEntry[]>>;
   setIsProcessing: (processing: boolean) => void;
@@ -173,7 +173,6 @@ export function useInputHandler({
   const handleInputSubmit = async (userInput: string) => {
     if (userInput === "exit" || userInput === "quit") {
       process.exit(0);
-      return;
     }
 
     if (userInput.trim()) {
@@ -222,7 +221,7 @@ export function useInputHandler({
   const commandSuggestions: CommandSuggestion[] = [
     { command: "/help", description: "Show help information" },
     { command: "/clear", description: "Clear chat history" },
-    { command: "/models", description: "Switch Grok Model" },
+    { command: "/models", description: "Switch Super Agent Model" },
     { command: "/commit-and-push", description: "AI commit & push to remote" },
     { command: "/exit", description: "Exit the application" },
   ];
@@ -258,7 +257,7 @@ export function useInputHandler({
     if (trimmedInput === "/help") {
       const helpEntry: ChatEntry = {
         type: "assistant",
-        content: `Grok CLI Help:
+        content: `Super Agent CLI Help:
 
 Built-in Commands:
   /clear      - Clear chat history
@@ -289,7 +288,7 @@ Direct Commands (executed immediately):
   touch <file>- Create empty file
 
 Model Configuration:
-  Edit ~/.grok/models.json to add custom models (Claude, GPT, Gemini, etc.)
+  Edit ~/.super-agent/settings.json to add custom models (Claude, GPT, Gemini, etc.)
 
 For complex operations, just describe what you want in natural language.
 Examples:
@@ -305,7 +304,6 @@ Examples:
 
     if (trimmedInput === "/exit") {
       process.exit(0);
-      return true;
     }
 
     if (trimmedInput === "/models") {
@@ -683,6 +681,7 @@ Respond with ONLY the commit message, no additional text.`;
 
           case "tool_result":
             if (chunk.toolCall && chunk.toolResult) {
+              const result = chunk.toolResult;
               setChatHistory(prev =>
                 prev.map(entry => {
                   if (entry.isStreaming) {
@@ -696,10 +695,10 @@ Respond with ONLY the commit message, no additional text.`;
                     return {
                       ...entry,
                       type: "tool_result",
-                      content: chunk.toolResult.success
-                        ? chunk.toolResult.output || "Success"
-                        : chunk.toolResult.error || "Error occurred",
-                      toolResult: chunk.toolResult,
+                      content: result.success
+                        ? result.output || "Success"
+                        : result.error || "Error occurred",
+                      toolResult: result,
                     };
                   }
                   return entry;

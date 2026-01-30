@@ -1,9 +1,9 @@
 import type { ChatCompletionMessageParam } from "openai/resources/chat";
 import OpenAI from "openai";
 
-export type GrokMessage = ChatCompletionMessageParam;
+export type SuperAgentMessage = ChatCompletionMessageParam;
 
-export interface GrokTool {
+export interface SuperAgentTool {
   type: "function";
   function: {
     name: string;
@@ -16,7 +16,7 @@ export interface GrokTool {
   };
 }
 
-export interface GrokToolCall {
+export interface SuperAgentToolCall {
   id: string;
   type: "function";
   function: {
@@ -34,18 +34,18 @@ export interface SearchOptions {
   search_parameters?: SearchParameters;
 }
 
-export interface GrokResponse {
+export interface SuperAgentResponse {
   choices: Array<{
     message: {
       role: string;
       content: string | null;
-      tool_calls?: GrokToolCall[];
+      tool_calls?: SuperAgentToolCall[];
     };
     finish_reason: string;
   }>;
 }
 
-export class GrokClient {
+export class SuperAgentClient {
   private client: OpenAI;
   private currentModel: string = "grok-code-fast-1";
   private defaultMaxTokens: number;
@@ -53,10 +53,11 @@ export class GrokClient {
   constructor(apiKey: string, model?: string, baseURL?: string) {
     this.client = new OpenAI({
       apiKey,
-      baseURL: baseURL || process.env.GROK_BASE_URL || "https://api.x.ai/v1",
+      baseURL:
+        baseURL || process.env.SUPER_AGENT_BASE_URL || "https://api.x.ai/v1",
       timeout: 360000,
     });
-    const envMax = Number(process.env.GROK_MAX_TOKENS);
+    const envMax = Number(process.env.SUPER_AGENT_MAX_TOKENS);
     this.defaultMaxTokens =
       Number.isFinite(envMax) && envMax > 0 ? envMax : 1536;
     if (model) {
@@ -73,11 +74,11 @@ export class GrokClient {
   }
 
   async chat(
-    messages: GrokMessage[],
-    tools?: GrokTool[],
+    messages: SuperAgentMessage[],
+    tools?: SuperAgentTool[],
     model?: string,
     searchOptions?: SearchOptions,
-  ): Promise<GrokResponse> {
+  ): Promise<SuperAgentResponse> {
     try {
       const requestPayload: any = {
         model: model || this.currentModel,
@@ -96,15 +97,15 @@ export class GrokClient {
       const response =
         await this.client.chat.completions.create(requestPayload);
 
-      return response as GrokResponse;
+      return response as SuperAgentResponse;
     } catch (error: any) {
-      throw new Error(`Grok API error: ${error.message}`);
+      throw new Error(`Super Agent API error: ${error.message}`);
     }
   }
 
   async *chatStream(
-    messages: GrokMessage[],
-    tools?: GrokTool[],
+    messages: SuperAgentMessage[],
+    tools?: SuperAgentTool[],
     model?: string,
     searchOptions?: SearchOptions,
   ): AsyncGenerator<any, void, unknown> {
@@ -132,15 +133,15 @@ export class GrokClient {
         yield chunk;
       }
     } catch (error: any) {
-      throw new Error(`Grok API error: ${error.message}`);
+      throw new Error(`Super Agent API error: ${error.message}`);
     }
   }
 
   async search(
     query: string,
     searchParameters?: SearchParameters,
-  ): Promise<GrokResponse> {
-    const searchMessage: GrokMessage = {
+  ): Promise<SuperAgentResponse> {
+    const searchMessage: SuperAgentMessage = {
       role: "user",
       content: query,
     };

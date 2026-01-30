@@ -9,11 +9,11 @@ import * as fs from "fs";
 const SETTINGS_VERSION = 2;
 
 /**
- * User-level settings stored in ~/.grok/user-settings.json
+ * User-level settings stored in ~/.super-agent/settings.json
  * These are global settings that apply across all projects
  */
 export interface UserSettings {
-  apiKey?: string; // Grok API key
+  apiKey?: string; // Super Agent API key
   baseURL?: string; // API base URL
   defaultModel?: string; // User's preferred default model
   models?: string[]; // Available models list
@@ -21,7 +21,7 @@ export interface UserSettings {
 }
 
 /**
- * Project-level settings stored in .grok/settings.json
+ * Project-level settings stored in .super-agent/settings.json
  * These are project-specific settings
  */
 export interface ProjectSettings {
@@ -36,7 +36,7 @@ const DEFAULT_USER_SETTINGS: Partial<UserSettings> = {
   baseURL: "https://api.x.ai/v1",
   defaultModel: "grok-code-fast-1",
   models: [
-    // Grok 4.1 Fast models (2M context, latest - November 2025)
+    // Super Agent 4.1 Fast models (2M context, latest - November 2025)
     "grok-4-1-fast-reasoning",
     "grok-4-1-fast-non-reasoning",
     // Grok 4 Fast models (2M context)
@@ -47,7 +47,7 @@ const DEFAULT_USER_SETTINGS: Partial<UserSettings> = {
     "grok-4-latest",
     // Grok Code (optimized for coding, 256K context)
     "grok-code-fast-1",
-    // Grok 3 models (131K context)
+    // Super Agent 3 models (131K context)
     "grok-3",
     "grok-3-latest",
     "grok-3-fast",
@@ -73,17 +73,17 @@ export class SettingsManager {
   private projectSettingsPath: string;
 
   private constructor() {
-    // User settings path: ~/.grok/user-settings.json
+    // User settings path: ~/.super-agent/settings.json
     this.userSettingsPath = path.join(
       os.homedir(),
-      ".grok",
-      "user-settings.json",
+      ".super-agent",
+      "settings.json",
     );
 
-    // Project settings path: .grok/settings.json (in current working directory)
+    // Project settings path: .super-agent/settings.json (in current working directory)
     this.projectSettingsPath = path.join(
       process.cwd(),
-      ".grok",
+      ".super-agent",
       "settings.json",
     );
   }
@@ -109,7 +109,7 @@ export class SettingsManager {
   }
 
   /**
-   * Load user settings from ~/.grok/user-settings.json
+   * Load user settings from ~/.super-agent/settings.json
    */
   public loadUserSettings(): UserSettings {
     try {
@@ -154,7 +154,7 @@ export class SettingsManager {
   ): UserSettings {
     let migrated = { ...settings };
 
-    // Migration from version 1 to 2: Add new Grok 4.1 and Grok 4 Fast models
+    // Migration from version 1 to 2: Add new Super Agent 4.1 and Grok 4 Fast models
     if (fromVersion < 2) {
       const defaultModels = DEFAULT_USER_SETTINGS.models || [];
       const existingModels = new Set(migrated.models || []);
@@ -176,7 +176,7 @@ export class SettingsManager {
   }
 
   /**
-   * Save user settings to ~/.grok/user-settings.json
+   * Save user settings to ~/.super-agent/settings.json
    */
   public saveUserSettings(settings: Partial<UserSettings>): void {
     try {
@@ -231,7 +231,7 @@ export class SettingsManager {
   }
 
   /**
-   * Load project settings from .grok/settings.json
+   * Load project settings from .super-agent/settings.json
    */
   public loadProjectSettings(): ProjectSettings {
     try {
@@ -256,7 +256,7 @@ export class SettingsManager {
   }
 
   /**
-   * Save project settings to .grok/settings.json
+   * Save project settings to .super-agent/settings.json
    */
   public saveProjectSettings(settings: Partial<ProjectSettings>): void {
     try {
@@ -351,7 +351,7 @@ export class SettingsManager {
    */
   public getApiKey(): string | undefined {
     // First check environment variable
-    const envApiKey = process.env.GROK_API_KEY;
+    const envApiKey = process.env.SUPER_AGENT_API_KEY;
     if (envApiKey) {
       return envApiKey;
     }
@@ -365,7 +365,7 @@ export class SettingsManager {
    */
   public getBaseURL(): string {
     // First check environment variable
-    const envBaseURL = process.env.GROK_BASE_URL;
+    const envBaseURL = process.env.SUPER_AGENT_BASE_URL;
     if (envBaseURL) {
       return envBaseURL;
     }

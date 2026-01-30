@@ -1,11 +1,11 @@
 import {
   addMCPServer,
-  removeMCPServer,
   loadMCPConfig,
   PREDEFINED_SERVERS,
+  removeMCPServer,
 } from "../mcp/config";
 import { MCPServerConfig } from "../mcp/client";
-import { getMCPManager } from "../grok/tools";
+import { getMCPManager } from "../core/tools";
 import { Command } from "commander";
 import chalk from "chalk";
 

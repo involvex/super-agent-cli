@@ -1,23 +1,23 @@
 import {
-  ConfirmationService,
   ConfirmationOptions,
-} from "../../utils/confirmation-service.ts";
+  ConfirmationService,
+} from "../../utils/confirmation-service";
 import { useInputHandler } from "../../hooks/use-input-handler";
-import { GrokAgent, ChatEntry } from "../../agent/grok-agent";
+import { ChatEntry, SuperAgent } from "../../agent/super-agent";
 import { CommandSuggestions } from "./command-suggestions";
-import React, { useState, useEffect, useRef } from "react";
 import ConfirmationDialog from "./confirmation-dialog";
-import { ModelSelection } from "./model-selection.ts";
-import { LoadingSpinner } from "./loading-spinner.ts";
-import { ChatHistory } from "./chat-history.ts";
-import ApiKeyInput from "./api-key-input.ts";
-import { MCPStatus } from "./mcp-status.ts";
-import { ChatInput } from "./chat-input.ts";
+import { useEffect, useRef, useState } from "react";
+import { ModelSelection } from "./model-selection";
+import { LoadingSpinner } from "./loading-spinner";
+import { ChatHistory } from "./chat-history";
+import ApiKeyInput from "./api-key-input";
+import { MCPStatus } from "./mcp-status";
+import { ChatInput } from "./chat-input";
 import { Box, Text } from "ink";
 import cfonts from "cfonts";
 
 interface ChatInterfaceProps {
-  agent?: GrokAgent;
+  agent?: SuperAgent;
   initialMessage?: string;
 }
 
@@ -26,7 +26,7 @@ function ChatInterfaceWithAgent({
   agent,
   initialMessage,
 }: {
-  agent: GrokAgent;
+  agent: SuperAgent;
   initialMessage?: string;
 }) {
   const [chatHistory, setChatHistory] = useState<ChatEntry[]>([]);
@@ -81,7 +81,7 @@ function ChatInterfaceWithAgent({
     console.log("    ");
 
     // Generate logo with margin to match Ink paddingX={2}
-    const logoOutput = cfonts.render("GROK", {
+    const logoOutput = cfonts.render("SUPER|AGENT", {
       font: "3d",
       align: "left",
       colors: ["magenta", "gray"],
@@ -183,32 +183,6 @@ function ChatInterfaceWithAgent({
                   });
                 }
                 break;
-              case "tool_result":
-                if (chunk.toolCall && chunk.toolResult) {
-                  setChatHistory(prev =>
-                    prev.map(entry => {
-                      if (entry.isStreaming) {
-                        return { ...entry, isStreaming: false };
-                      }
-                      if (
-                        entry.type === "tool_call" &&
-                        entry.toolCall?.id === chunk.toolCall?.id
-                      ) {
-                        return {
-                          ...entry,
-                          type: "tool_result",
-                          content: chunk.toolResult.success
-                            ? chunk.toolResult.output || "Success"
-                            : chunk.toolResult.error || "Error occurred",
-                          toolResult: chunk.toolResult,
-                        };
-                      }
-                      return entry;
-                    }),
-                  );
-                  streamingEntry = null;
-                }
-                break;
               case "done":
                 if (streamingEntry) {
                   setChatHistory(prev =>
@@ -306,7 +280,7 @@ function ChatInterfaceWithAgent({
             </Text>
             <Text color="gray">2. Be specific for the best results.</Text>
             <Text color="gray">
-              3. Create GROK.md files to customize your interactions with Grok.
+              3. Create SUPER_AGENT.md files to customize your interactions.
             </Text>
             <Text color="gray">
               4. Press Shift+Tab to toggle auto-edit mode.
@@ -398,11 +372,11 @@ export default function ChatInterface({
   agent,
   initialMessage,
 }: ChatInterfaceProps) {
-  const [currentAgent, setCurrentAgent] = useState<GrokAgent | null>(
+  const [currentAgent, setCurrentAgent] = useState<SuperAgent | null>(
     agent || null,
   );
 
-  const handleApiKeySet = (newAgent: GrokAgent) => {
+  const handleApiKeySet = (newAgent: SuperAgent) => {
     setCurrentAgent(newAgent);
   };
 

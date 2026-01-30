@@ -1,8 +1,8 @@
 import {
   createTransport,
   MCPTransport,
-  TransportType,
   TransportConfig,
+  TransportType,
 } from "./transports";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -53,7 +53,7 @@ export class MCPManager extends EventEmitter {
       // Create client
       const client = new Client(
         {
-          name: "grok-cli",
+          name: "super-agent-cli",
           version: "1.0.0",
         },
         {
@@ -129,10 +129,10 @@ export class MCPManager extends EventEmitter {
     // Extract the original tool name (remove mcp__servername__ prefix)
     const originalToolName = toolName.replace(`mcp__${tool.serverName}__`, "");
 
-    return await client.callTool({
+    return (await client.callTool({
       name: originalToolName,
       arguments: arguments_,
-    });
+    })) as unknown as CallToolResult;
   }
 
   getTools(): MCPTool[] {

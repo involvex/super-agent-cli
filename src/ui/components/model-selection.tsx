@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import React from "react";
 
 interface ModelOption {
   model: string;
@@ -25,7 +24,9 @@ export function ModelSelection({
   return (
     <Box marginTop={1} flexDirection="column">
       <Box marginBottom={1}>
-        <Text color="cyan">Select Grok Model (current: {currentModel}):</Text>
+        <Text color="cyan">
+          Select Super Agent Model (current: {currentModel}):
+        </Text>
       </Box>
       {models.map((modelOption, index) => (
         <Box key={index} paddingLeft={1}>

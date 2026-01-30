@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { getMCPManager } from "../../grok/tools";
+import { getMCPManager } from "../../core/tools";
+import { useEffect, useState } from "react";
 import { MCPTool } from "../../mcp/client";
 import { Box, Text } from "ink";
 

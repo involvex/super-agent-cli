@@ -1,10 +1,10 @@
 import { getSettingsManager } from "../../utils/settings-manager";
-import { GrokAgent } from "../../agent/grok-agent";
-import { Box, Text, useInput, useApp } from "ink";
-import React, { useState } from "react";
+import { SuperAgent } from "../../agent/super-agent";
+import { Box, Text, useApp, useInput } from "ink";
+import { useState } from "react";
 
 interface ApiKeyInputProps {
-  onApiKeySet: (agent: GrokAgent) => void;
+  onApiKeySet: (agent: SuperAgent) => void;
 }
 
 export default function ApiKeyInput({ onApiKeySet }: ApiKeyInputProps) {
@@ -49,16 +49,16 @@ export default function ApiKeyInput({ onApiKeySet }: ApiKeyInputProps) {
     setIsSubmitting(true);
     try {
       const apiKey = input.trim();
-      const agent = new GrokAgent(apiKey);
+      const agent = new SuperAgent(apiKey);
 
       // Set environment variable for current process
-      process.env.GROK_API_KEY = apiKey;
+      process.env.SUPER_AGENT_API_KEY = apiKey;
 
       // Save to user settings
       try {
         const manager = getSettingsManager();
         manager.updateUserSetting("apiKey", apiKey);
-        console.log(`\n✅ API key saved to ~/.grok/user-settings.json`);
+        console.log(`\n✅ API key saved to ~/.super-agent/settings.json`);
       } catch (error) {
         console.log("\n⚠️ Could not save API key to settings file");
         console.log("API key set for current session only");
@@ -106,7 +106,7 @@ export default function ApiKeyInput({ onApiKeySet }: ApiKeyInputProps) {
           • Press Ctrl+C to exit
         </Text>
         <Text color="gray" dimColor>
-          Note: API key will be saved to ~/.grok/user-settings.json
+          Note: API key will be saved to ~/.super-agent/settings.json
         </Text>
       </Box>
 

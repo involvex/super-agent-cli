@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import type { ChatCompletionMessageParam } from "openai/resources/chat";
-import { ConfirmationService } from "./utils/confirmation-service.ts";
-import { getSettingsManager } from "./utils/settings-manager.ts";
-import ChatInterface from "./ui/components/chat-interface.ts";
-import { createMCPCommand } from "./commands/mcp.ts";
-import { GrokAgent } from "./agent/grok-agent.ts";
+import { ConfirmationService } from "./utils/confirmation-service";
+import { getSettingsManager } from "./utils/settings-manager";
+import ChatInterface from "./ui/components/chat-interface";
+import { createMCPCommand } from "./commands/mcp";
+import { SuperAgent } from "./agent/super-agent";
 import { program } from "commander";
 import * as dotenv from "dotenv";
 import { render } from "ink";
@@ -74,11 +74,11 @@ async function saveCommandLineSettings(
     // Update with command line values
     if (apiKey) {
       manager.updateUserSetting("apiKey", apiKey);
-      console.log("✅ API key saved to ~/.grok/user-settings.json");
+      console.log("✅ API key saved to ~/.super-agent/settings.json");
     }
     if (baseURL) {
       manager.updateUserSetting("baseURL", baseURL);
-      console.log("✅ Base URL saved to ~/.grok/user-settings.json");
+      console.log("✅ Base URL saved to ~/.super-agent/settings.json");
     }
   } catch (error) {
     console.warn(
@@ -91,7 +91,7 @@ async function saveCommandLineSettings(
 // Load model from user settings if not in environment
 function loadModel(): string | undefined {
   // First check environment variables
-  let model = process.env.GROK_MODEL;
+  let model = process.env.SUPER_AGENT_MODEL;
 
   if (!model) {
     // Use the unified model loading from settings manager
@@ -114,7 +114,7 @@ async function handleCommitAndPushHeadless(
   maxToolRounds?: number,
 ): Promise<void> {
   try {
-    const agent = new GrokAgent(apiKey, baseURL, model, maxToolRounds);
+    const agent = new SuperAgent(apiKey, baseURL, model, maxToolRounds);
 
     // Configure confirmation service for headless mode (auto-approve all operations)
     const confirmationService = ConfirmationService.getInstance();
@@ -236,7 +236,7 @@ async function processPromptHeadless(
   maxToolRounds?: number,
 ): Promise<void> {
   try {
-    const agent = new GrokAgent(apiKey, baseURL, model, maxToolRounds);
+    const agent = new SuperAgent(apiKey, baseURL, model, maxToolRounds);
 
     // Configure confirmation service for headless mode (auto-approve all operations)
     const confirmationService = ConfirmationService.getInstance();
@@ -307,21 +307,24 @@ async function processPromptHeadless(
 }
 
 program
-  .name("grok")
+  .name("super-agent")
   .description(
-    "A conversational AI CLI tool powered by Grok with text editor capabilities",
+    "A conversational AI CLI tool powered by Super Agent with text editor capabilities",
   )
   .version("1.0.1")
-  .argument("[message...]", "Initial message to send to Grok")
+  .argument("[message...]", "Initial message to send to Super Agent")
   .option("-d, --directory <dir>", "set working directory", process.cwd())
-  .option("-k, --api-key <key>", "Grok API key (or set GROK_API_KEY env var)")
+  .option(
+    "-k, --api-key <key>",
+    "Super Agent API key (or set SUPER_AGENT_API_KEY env var)",
+  )
   .option(
     "-u, --base-url <url>",
-    "Grok API base URL (or set GROK_BASE_URL env var)",
+    "Super Agent API base URL (or set SUPER_AGENT_BASE_URL env var)",
   )
   .option(
     "-m, --model <model>",
-    "AI model to use (e.g., grok-code-fast-1, grok-4-latest) (or set GROK_MODEL env var)",
+    "AI model to use (e.g., Super Agent-code-fast-1, Super Agent-4-latest) (or set SUPER_AGENT_MODEL env var)",
   )
   .option(
     "-p, --prompt <prompt>",
@@ -354,7 +357,7 @@ program
 
       if (!apiKey) {
         console.error(
-          '❌ Error: API key required. Set GROK_API_KEY environment variable, use --api-key flag, or set "apiKey" field in ~/.grok/user-settings.json',
+          '❌ Error: API key required. Set SUPER_AGENT_API_KEY environment variable, use --api-key flag, or set "apiKey" field in ~/.super-agent/settings.json',
         );
         process.exit(1);
       }
@@ -377,8 +380,8 @@ program
       }
 
       // Interactive mode: launch UI
-      const agent = new GrokAgent(apiKey, baseURL, model, maxToolRounds);
-      console.log("🤖 Starting Grok CLI Conversational Assistant...\n");
+      const agent = new SuperAgent(apiKey, baseURL, model, maxToolRounds);
+      console.log("🤖 Starting Super Agent CLI Conversational Assistant...\n");
 
       ensureUserSettingsDirectory();
 
@@ -389,7 +392,7 @@ program
 
       render(React.createElement(ChatInterface, { agent, initialMessage }));
     } catch (error: any) {
-      console.error("❌ Error initializing Grok CLI:", error.message);
+      console.error("❌ Error initializing Super Agent CLI:", error.message);
       process.exit(1);
     }
   });
@@ -403,14 +406,17 @@ gitCommand
   .command("commit-and-push")
   .description("Generate AI commit message and push to remote")
   .option("-d, --directory <dir>", "set working directory", process.cwd())
-  .option("-k, --api-key <key>", "Grok API key (or set GROK_API_KEY env var)")
+  .option(
+    "-k, --api-key <key>",
+    "Super Agent API key (or set SUPER_AGENT_API_KEY env var)",
+  )
   .option(
     "-u, --base-url <url>",
-    "Grok API base URL (or set GROK_BASE_URL env var)",
+    "Super Agent API base URL (or set SUPER_AGENT_BASE_URL env var)",
   )
   .option(
     "-m, --model <model>",
-    "AI model to use (e.g., grok-code-fast-1, grok-4-latest) (or set GROK_MODEL env var)",
+    "AI model to use (e.g., Super Agent-code-fast-1, Super Agent-4-latest) (or set SUPER_AGENT_MODEL env var)",
   )
   .option(
     "--max-tool-rounds <rounds>",
@@ -439,7 +445,7 @@ gitCommand
 
       if (!apiKey) {
         console.error(
-          "❌ Error: API key required. Set GROK_API_KEY environment variable, use --api-key flag, or save to ~/.grok/user-settings.json",
+          "❌ Error: API key required. Set SUPER_AGENT_API_KEY environment variable, use --api-key flag, or save to ~/.super-agent/settings.json",
         );
         process.exit(1);
       }

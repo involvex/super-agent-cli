@@ -6,14 +6,22 @@ export function loadCustomInstructions(
   workingDirectory: string = process.cwd(),
 ): string | null {
   try {
-    let instructionsPath = path.join(workingDirectory, ".grok", "GROK.md");
+    let instructionsPath = path.join(
+      workingDirectory,
+      ".super-agent",
+      "SUPER_AGENT.md",
+    );
 
     if (fs.existsSync(instructionsPath)) {
       const customInstructions = fs.readFileSync(instructionsPath, "utf-8");
       return customInstructions.trim();
     }
 
-    instructionsPath = path.join(os.homedir(), ".grok", "GROK.md");
+    instructionsPath = path.join(
+      os.homedir(),
+      ".super-agent",
+      "SUPER_AGENT.md",
+    );
 
     if (fs.existsSync(instructionsPath)) {
       const customInstructions = fs.readFileSync(instructionsPath, "utf-8");

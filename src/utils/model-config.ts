@@ -1,7 +1,7 @@
 import {
   getSettingsManager,
-  UserSettings,
-  ProjectSettings,
+  type ProjectSettings,
+  type UserSettings,
 } from "./settings-manager";
 
 export interface ModelOption {
@@ -11,7 +11,7 @@ export interface ModelOption {
 export type ModelConfig = string;
 
 // Re-export interfaces for backward compatibility
-export { UserSettings, ProjectSettings };
+export type { ProjectSettings, UserSettings };
 
 /**
  * Get the effective current model

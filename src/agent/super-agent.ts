@@ -1,20 +1,22 @@
 import {
-  GROK_TOOLS,
-  addMCPToolsToGrokTools,
-  getAllGrokTools,
+  BashTool,
+  ConfirmationTool,
+  MorphEditorTool,
+  SearchTool,
+  TextEditorTool,
+  TodoTool,
+} from "../tools/index";
+import {
+  getAllSuperAgentTools,
   getMCPManager,
   initializeMCPServers,
-} from "../grok/tools";
+} from "../core/tools";
 import {
-  TextEditorTool,
-  MorphEditorTool,
-  BashTool,
-  TodoTool,
-  ConfirmationTool,
-  SearchTool,
-} from "../tools/index";
+  SuperAgentClient,
+  SuperAgentMessage,
+  SuperAgentToolCall,
+} from "../core/client";
 import { createTokenCounter, TokenCounter } from "../utils/token-counter";
-import { GrokClient, GrokMessage, GrokToolCall } from "../grok/client";
 import { loadCustomInstructions } from "../utils/custom-instructions";
 import { getSettingsManager } from "../utils/settings-manager";
 import { loadMCPConfig } from "../mcp/config";
@@ -25,8 +27,8 @@ export interface ChatEntry {
   type: "user" | "assistant" | "tool_result" | "tool_call";
   content: string;
   timestamp: Date;
-  toolCalls?: GrokToolCall[];
-  toolCall?: GrokToolCall;
+  toolCalls?: SuperAgentToolCall[];
+  toolCall?: SuperAgentToolCall;
   toolResult?: { success: boolean; output?: string; error?: string };
   isStreaming?: boolean;
 }
@@ -34,14 +36,14 @@ export interface ChatEntry {
 export interface StreamingChunk {
   type: "content" | "tool_calls" | "tool_result" | "done" | "token_count";
   content?: string;
-  toolCalls?: GrokToolCall[];
-  toolCall?: GrokToolCall;
+  toolCalls?: SuperAgentToolCall[];
+  toolCall?: SuperAgentToolCall;
   toolResult?: ToolResult;
   tokenCount?: number;
 }
 
-export class GrokAgent extends EventEmitter {
-  private grokClient: GrokClient;
+export class SuperAgent extends EventEmitter {
+  private superAgentClient: SuperAgentClient;
   private textEditor: TextEditorTool;
   private morphEditor: MorphEditorTool | null;
   private bash: BashTool;
@@ -49,7 +51,7 @@ export class GrokAgent extends EventEmitter {
   private confirmationTool: ConfirmationTool;
   private search: SearchTool;
   private chatHistory: ChatEntry[] = [];
-  private messages: GrokMessage[] = [];
+  private messages: SuperAgentMessage[] = [];
   private tokenCounter: TokenCounter;
   private abortController: AbortController | null = null;
   private mcpInitialized: boolean = false;
@@ -66,7 +68,7 @@ export class GrokAgent extends EventEmitter {
     const savedModel = manager.getCurrentModel();
     const modelToUse = model || savedModel || "grok-code-fast-1";
     this.maxToolRounds = maxToolRounds || 400;
-    this.grokClient = new GrokClient(apiKey, modelToUse, baseURL);
+    this.superAgentClient = new SuperAgentClient(apiKey, modelToUse, baseURL);
     this.textEditor = new TextEditorTool();
     this.morphEditor = process.env.MORPH_API_KEY ? new MorphEditorTool() : null;
     this.bash = new BashTool();
@@ -168,7 +170,7 @@ Current working directory: ${process.cwd()}`,
   }
 
   private isGrokModel(): boolean {
-    const currentModel = this.grokClient.getCurrentModel();
+    const currentModel = this.superAgentClient.getCurrentModel();
     return currentModel.toLowerCase().includes("grok");
   }
 
@@ -219,8 +221,8 @@ Current working directory: ${process.cwd()}`,
     let toolRounds = 0;
 
     try {
-      const tools = await getAllGrokTools();
-      let currentResponse = await this.grokClient.chat(
+      const tools = await getAllSuperAgentTools();
+      let currentResponse = await this.superAgentClient.chat(
         this.messages,
         tools,
         undefined,
@@ -317,7 +319,7 @@ Current working directory: ${process.cwd()}`,
           }
 
           // Get next response - this might contain more tool calls
-          currentResponse = await this.grokClient.chat(
+          currentResponse = await this.superAgentClient.chat(
             this.messages,
             tools,
             undefined,
@@ -442,8 +444,8 @@ Current working directory: ${process.cwd()}`,
         }
 
         // Stream response and accumulate
-        const tools = await getAllGrokTools();
-        const stream = this.grokClient.chatStream(
+        const tools = await getAllSuperAgentTools();
+        const stream = this.superAgentClient.chatStream(
           this.messages,
           tools,
           undefined,
@@ -642,7 +644,7 @@ Current working directory: ${process.cwd()}`,
     }
   }
 
-  private async executeTool(toolCall: GrokToolCall): Promise<ToolResult> {
+  private async executeTool(toolCall: SuperAgentToolCall): Promise<ToolResult> {
     try {
       const args = JSON.parse(toolCall.function.arguments);
 
@@ -720,7 +722,9 @@ Current working directory: ${process.cwd()}`,
     }
   }
 
-  private async executeMCPTool(toolCall: GrokToolCall): Promise<ToolResult> {
+  private async executeMCPTool(
+    toolCall: SuperAgentToolCall,
+  ): Promise<ToolResult> {
     try {
       const args = JSON.parse(toolCall.function.arguments);
       const mcpManager = getMCPManager();
@@ -771,11 +775,11 @@ Current working directory: ${process.cwd()}`,
   }
 
   getCurrentModel(): string {
-    return this.grokClient.getCurrentModel();
+    return this.superAgentClient.getCurrentModel();
   }
 
   setModel(model: string): void {
-    this.grokClient.setModel(model);
+    this.superAgentClient.setModel(model);
     // Update token counter for new model
     this.tokenCounter.dispose();
     this.tokenCounter = createTokenCounter(model);
