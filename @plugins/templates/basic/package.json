@@ -1,0 +1,25 @@
+{
+  "name": "@involvex/super-agent-plugin-template",
+  "version": "1.0.0",
+  "description": "Basic template for Super Agent CLI plugins",
+  "keywords": [
+    "super-agent",
+    "plugin"
+  ],
+  "license": "MIT",
+  "author": "Your Name",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@involvex/super-agent-cli": ">=0.0.58"
+  }
+}

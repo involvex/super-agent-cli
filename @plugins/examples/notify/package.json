@@ -1,0 +1,27 @@
+{
+  "name": "@involvex/super-agent-plugin-notify",
+  "version": "1.0.0",
+  "description": "Desktop notification plugin for Super Agent CLI",
+  "keywords": [
+    "super-agent",
+    "plugin",
+    "notifications",
+    "desktop"
+  ],
+  "license": "MIT",
+  "author": "InvolveX",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@involvex/super-agent-cli": ">=0.0.58"
+  }
+}
