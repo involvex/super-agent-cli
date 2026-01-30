@@ -1,3 +1,9 @@
+## [0.0.50](https://github.com/involvex/super-agent-cli/compare/v0.0.49...v0.0.50) (2026-01-30)
+
+### Features
+
+- **chat:** add chat session persistence commands ([a443eab](https://github.com/involvex/super-agent-cli/commit/a443eab9102b01f0e4dc59dfb127bfeba3aab167))
+
 ## [0.0.49](https://github.com/involvex/super-agent-cli/compare/v0.0.48...v0.0.49) (2026-01-30)
 
 ### Features
