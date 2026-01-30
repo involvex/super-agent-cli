@@ -474,10 +474,14 @@ export function useInputHandler({
     { command: "/exit", description: "Exit the application" },
   ];
 
+  const [activeProvider, setActiveProvider] = useState(() => {
+    return getSettingsManager().loadUserSettings().active_provider;
+  });
+
   // Load models from configuration with fallback to defaults
   const availableModels: ModelOption[] = useMemo(() => {
     return loadModelConfig();
-  }, []);
+  }, [activeProvider]);
 
   const handleDirectCommand = async (input: string): Promise<boolean> => {
     const trimmedInput = input.trim();
@@ -562,26 +566,31 @@ Config Commands:
 
       if (settings.providers && settings.providers[providerId]) {
         manager.updateUserSetting("active_provider", providerId);
-        setChatHistory(prev => [
-          ...prev,
-          {
-            type: "assistant",
-            content: `✓ Switched active provider to: ${providerId}`,
-            timestamp: new Date(),
-          },
-        ]);
-        // Also need to re-initialize agent with new keys?
-        // The agent instance in ChatInterface handles its own state, but ideally we should update it.
-        // For now, next request will pick up new key if we re-instantiate or if agent reads it dynamically.
-        // But 'agent' prop is constant. We might need to call agent.setApiKey/BaseUrl.
-        // The current SuperAgent implementation takes config in constructor.
-        // To properly support dynamic switching without reload, SuperAgent should support `updateConfig`.
-        // For now, we inform user they might need to restart or we assume next tool call uses new config if implemented that way.
-        const newConfig = settings.providers[providerId];
-        // Prudent hack: if agent exposes setters, use them. If not, warn user.
-        // Assuming agent has setApiKey - checking agent/super-agent.ts would be good.
-        // If not, we can rely on process.env which we might not have updated.
-        // Let's assume for this step we just save settings.
+
+        try {
+          // Update agent configuration
+          agent.setProvider(providerId);
+          // Trigger UI update
+          setActiveProvider(providerId);
+
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `✓ Switched active provider to: ${providerId}`,
+              timestamp: new Date(),
+            },
+          ]);
+        } catch (error: any) {
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `❌ Failed to switch provider: ${error.message}`,
+              timestamp: new Date(),
+            },
+          ]);
+        }
       } else {
         setChatHistory(prev => [
           ...prev,

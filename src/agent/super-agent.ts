@@ -208,6 +208,66 @@ Current working directory: ${process.cwd()}`,
     });
   }
 
+  /**
+   * Set the active provider dynamically
+   */
+  public setProvider(providerId: string): void {
+    const manager = getSettingsManager();
+    const settings = manager.loadUserSettings();
+
+    // Normalize provider ID
+    const activeProviderId = (providerId || "grok").toLowerCase();
+
+    // Alias zai -> grok for backward compatibility
+    if (activeProviderId === "zai") {
+      // already handled in providerConfig lookup effectively
+    }
+
+    const providerConfig = settings.providers[activeProviderId];
+    if (!providerConfig) {
+      throw new Error(`Provider '${activeProviderId}' not configured.`);
+    }
+
+    const providerType = providerConfig.provider || activeProviderId;
+    const effectiveApiKey = providerConfig.api_key || "";
+    const effectiveBaseURL = providerConfig.base_url || undefined;
+    const effectiveModel =
+      providerConfig.model ||
+      providerConfig.default_model ||
+      "grok-code-fast-1";
+
+    // Re-instantiate appropriate provider
+    if (providerType === "openai") {
+      this.superAgentClient = new OpenAIProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else if (providerType === "gemini" || providerType === "google") {
+      this.superAgentClient = new GeminiProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else if (providerType === "grok") {
+      this.superAgentClient = new GrokProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else {
+      this.superAgentClient = new OpenAICompatibleProvider(
+        effectiveApiKey,
+        effectiveBaseURL || "",
+        effectiveModel,
+        activeProviderId,
+      );
+    }
+
+    // Update token counter with new model
+    this.tokenCounter = createTokenCounter(effectiveModel);
+  }
+
   private async initializeMCP(): Promise<void> {
     // Initialize MCP in the background without blocking
     Promise.resolve().then(async () => {

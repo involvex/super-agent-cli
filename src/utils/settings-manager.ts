@@ -7,6 +7,48 @@ import * as fs from "fs";
  */
 const SETTINGS_VERSION = 2;
 
+// Models mapping per provider
+const PROVIDER_MODELS: Record<string, string[]> = {
+  grok: [
+    "grok-beta",
+    "grok-vision-beta",
+    "grok-2-vision-1212",
+    "grok-2-1212",
+    "grok-code-fast-1",
+  ],
+  openai: [
+    "gpt-4o",
+    "gpt-4o-mini",
+    "o1-preview",
+    "o1-mini",
+    "gpt-4-turbo",
+    "gpt-3.5-turbo",
+  ],
+  gemini: [
+    "gemini-2.0-flash",
+    "gemini-2.0-pro-exp-02-05", // hypothetical future/current
+    "gemini-1.5-pro",
+    "gemini-1.5-flash",
+  ],
+  mistral: ["mistral-large-latest", "mistral-small-latest", "codestral-latest"],
+  openrouter: [
+    "anthropic/claude-3.5-sonnet",
+    "anthropic/claude-3-opus",
+    "meta-llama/llama-3.1-70b-instruct",
+    "mistralai/mistral-large",
+    "google/gemini-flash-1.5",
+  ],
+  minimax: ["abab6.5s-chat"],
+  groq: [
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "mixtral-8x7b-32768",
+  ],
+  deepseek: ["deepseek-chat", "deepseek-coder"],
+  ollama: ["llama3", "mistral", "codellama"], // local, dynamic but hardcoded start
+  "workers-ai": ["@cf/meta/llama-3.1-70b-instruct"],
+};
+
 export interface ProviderConfig {
   id: string;
   provider: string;
@@ -311,22 +353,32 @@ export class SettingsManager {
     }
   }
 
-  public getAvailableModels(): string[] {
-    // Return a default list of known supported models
+  public getAvailableModels(providerId?: string): string[] {
+    const activeProvider =
+      providerId || this.getActiveProviderConfig()?.id || "grok";
+
+    // Check if we have specific models for this provider
+    let models = PROVIDER_MODELS[activeProvider];
+
+    if (!models) {
+      // Try looking up by provider type if ID didn't match
+      const config = this.getEffectiveSettings().providers[activeProvider];
+      if (config && PROVIDER_MODELS[config.provider]) {
+        models = PROVIDER_MODELS[config.provider];
+      }
+    }
+
+    if (models) {
+      return models;
+    }
+
+    // Fallback default list if provider unknown
     return [
       "grok-beta",
       "grok-vision-beta",
       "grok-2-vision-1212",
       "grok-2-1212",
       "grok-code-fast-1",
-      "gpt-4o",
-      "gpt-4o-mini",
-      "o1-preview",
-      "o1-mini",
-      "gemini-3-pro-preview",
-      "gemini-2.5-pro",
-      "gemini-2.5-flash",
-      "GLM-4.7",
     ];
   }
 
