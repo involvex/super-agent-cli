@@ -1,3 +1,10 @@
+## [0.0.68](https://github.com/involvex/super-agent-cli/compare/v0.0.67...v0.0.68) (2026-01-30)
+
+### Features
+
+- **input:** update agent provider when switching ([03577d9](https://github.com/involvex/super-agent-cli/commit/03577d93e3384c95b7fc5c3b084cff1dc0b2579e))
+- **settings:** add zai provider support ([5e9d918](https://github.com/involvex/super-agent-cli/commit/5e9d918cacbb978590210767debdb92d1801225e))
+
 ## [0.0.67](https://github.com/involvex/super-agent-cli/compare/v0.0.66...v0.0.67) (2026-01-30)
 
 ### Features
