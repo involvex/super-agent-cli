@@ -1,3 +1,9 @@
+## [0.0.65](https://github.com/involvex/super-agent-cli/compare/v0.0.64...v0.0.65) (2026-01-30)
+
+### Features
+
+- **commands:** add /doctor and /commands slash commands ([7631bc2](https://github.com/involvex/super-agent-cli/commit/7631bc212929119aabdfd52e7bc650b9419d6bbf))
+
 ## [0.0.64](https://github.com/involvex/super-agent-cli/compare/v0.0.63...v0.0.64) (2026-01-30)
 
 ### Features
