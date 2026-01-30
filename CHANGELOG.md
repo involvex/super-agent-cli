@@ -1,3 +1,11 @@
+## [0.0.61](https://github.com/involvex/super-agent-cli/compare/v0.0.60...v0.0.61) (2026-01-30)
+
+### Features
+
+- **plugins:** add workspace configuration for plugins monorepo structure ([bac2647](https://github.com/involvex/super-agent-cli/commit/bac26473e37ceb6575a94d2d858467ea3ed64505))
+
+## [0.0.60](https://github.com/involvex/super-agent-cli/compare/v0.0.59...v0.0.60) (2026-01-30)
+
 ## [0.0.59](https://github.com/involvex/super-agent-cli/compare/v0.0.58...v0.0.59) (2026-01-30)
 
 ### Features
