@@ -69,12 +69,7 @@ export class SuperAgent extends EventEmitter {
     super();
     const manager = getSettingsManager();
     const settings = manager.loadUserSettings();
-    let activeProviderId = (settings.active_provider || "grok").toLowerCase();
-
-    // Alias zai -> grok for backward compatibility
-    if (activeProviderId === "zai") {
-      activeProviderId = "grok";
-    }
+    const activeProviderId = (settings.active_provider || "grok").toLowerCase();
 
     const providerConfig = settings.providers[activeProviderId];
     // Fallback if config is missing (shouldn't happen with defaults, but safety check)
@@ -240,11 +235,6 @@ Current working directory: ${process.cwd()}`,
 
     // Normalize provider ID
     const activeProviderId = (providerId || "grok").toLowerCase();
-
-    // Alias zai -> grok for backward compatibility
-    if (activeProviderId === "zai") {
-      // already handled in providerConfig lookup effectively
-    }
 
     const providerConfig = settings.providers[activeProviderId];
     if (!providerConfig) {
