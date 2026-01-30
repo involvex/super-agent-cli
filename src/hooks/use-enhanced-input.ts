@@ -34,7 +34,7 @@ export interface EnhancedInputHook {
   input: string;
   cursorPosition: number;
   isMultiline: boolean;
-  setInput: (text: string) => void;
+  setInput: (text: string, cursorPosition?: number) => void;
   setCursorPosition: (position: number) => void;
   clearInput: () => void;
   insertAtCursor: (text: string) => void;
@@ -71,9 +71,15 @@ export function useEnhancedInput({
   } = useInputHistory();
 
   const setInput = useCallback(
-    (text: string) => {
+    (text: string, newCursorPos?: number) => {
       setInputState(text);
-      setCursorPositionState(Math.min(text.length, cursorPosition));
+      if (newCursorPos !== undefined) {
+        setCursorPositionState(
+          Math.max(0, Math.min(text.length, newCursorPos)),
+        );
+      } else {
+        setCursorPositionState(Math.min(text.length, cursorPosition));
+      }
       if (!isNavigatingHistory()) {
         setOriginalInput(text);
       }

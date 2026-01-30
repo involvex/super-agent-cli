@@ -401,11 +401,28 @@ export function addMCPToolsToSuperAgentTools(
   return [...baseTools, ...grokMCPTools];
 }
 
+import { getPluginManager } from "../plugins/manager";
+
+export function addPluginToolsToSuperAgentTools(
+  baseTools: SuperAgentTool[],
+): SuperAgentTool[] {
+  const pluginManager = getPluginManager();
+  const pluginTools = pluginManager.getTools();
+  return [...baseTools, ...pluginTools];
+}
+
 export async function getAllSuperAgentTools(): Promise<SuperAgentTool[]> {
   const manager = getMCPManager();
   // Try to initialize servers if not already done, but don't block
   manager.ensureServersInitialized().catch(() => {
     // Ignore initialization errors to avoid blocking
   });
-  return addMCPToolsToSuperAgentTools(SUPER_AGENT_TOOLS);
+
+  // Also load plugins if not already loaded?
+  // Ideally this should happen at startup, but let's ensure here for now or assume loaded.
+  // We'll leave loading to the app init or lazy load in manager.
+
+  let tools = addMCPToolsToSuperAgentTools(SUPER_AGENT_TOOLS);
+  tools = addPluginToolsToSuperAgentTools(tools);
+  return tools;
 }

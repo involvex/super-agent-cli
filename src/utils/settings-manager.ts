@@ -70,10 +70,7 @@ export interface UserSettings {
     showModelInfoInChat?: boolean;
   };
   mcpServers?: Record<string, any>;
-  plugins?: {
-    allowed_plugins: string[];
-    plugins: Array<{ name: string }>;
-  };
+  plugins?: string[]; // Array of plugin paths
   tools?: {
     allowed_tools: string[];
     tools: Array<{ name: string; enabled: boolean }>;

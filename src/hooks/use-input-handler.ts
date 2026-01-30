@@ -14,6 +14,7 @@ import { loadModelConfig, updateCurrentModel } from "../utils/model-config";
 import { getMCPManager, initializeMCPServers } from "../core/tools";
 import { getSettingsManager } from "../utils/settings-manager";
 import { getChatManager } from "../utils/chat-manager";
+import { getPluginManager } from "../plugins/manager";
 import * as fs from "fs-extra";
 
 type AgentMode = "plan" | "code" | "debug";
@@ -315,9 +316,19 @@ export function useInputHandler({
             filteredSuggestions.length - 1,
           );
           const selectedCommand = filteredSuggestions[safeIndex];
+          // If the command has arguments placeholders (e.g. <name>), strip them for the actual input
+          // Or keep them? Usually we just want the command base.
+          // But if the user defined command as "/mcp <action>", we probably want "/mcp ".
+          // Let's check how other commands are defined.
+          // "/chat save <name>" -> we probably want "/chat save "?
+          // The current logic uses the full string.
+
+          // Actually, let's keep it simple first: just ensure cursor goes to end.
           const newInput = selectedCommand.command + " ";
-          setInput(newInput);
-          setCursorPosition(newInput.length);
+          // By passing the cursor position to setInput, we avoid the stale closure issue
+          // where setCursorPosition would clamp based on the old input length.
+          setInput(newInput, newInput.length);
+
           setShowCommandSuggestions(false);
           setSelectedCommandIndex(0);
           return true;
@@ -478,7 +489,11 @@ export function useInputHandler({
     { command: "/chat delete <name>", description: "Delete a saved chat" },
     {
       command: "/mcp <action>",
-      description: "Manage MCP servers (list, add, remove, reload)",
+      description: "Manage MCP servers",
+    },
+    {
+      command: "/plugin <action>",
+      description: "Manage plugins (list, install, remove)",
     },
     { command: "/commit-and-push", description: "AI commit & push to remote" },
     { command: "/exit", description: "Exit the application" },
@@ -749,6 +764,84 @@ Available models: ${modelNames.join(", ")}`,
             timestamp: new Date(),
           },
         ]);
+      }
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput.startsWith("/plugin ")) {
+      const args = trimmedInput.replace("/plugin ", "").split(" ");
+      const action = args[0];
+      const pluginManager = getPluginManager();
+
+      try {
+        if (action === "list") {
+          const plugins = pluginManager.getPlugins();
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `Installed Plugins:\n${plugins.length ? plugins.map(p => `- ${p.name} (v${p.version})`).join("\n") : "No plugins installed."}`,
+              timestamp: new Date(),
+            },
+          ]);
+        } else if (action === "install") {
+          const pathOrName = args[1];
+          if (!pathOrName) {
+            throw new Error("Usage: /plugin install <path>");
+          }
+
+          setIsProcessing(true);
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `Installing plugin from ${pathOrName}...`,
+              timestamp: new Date(),
+            },
+          ]);
+
+          await pluginManager.installPlugin(pathOrName);
+          // We need to load it to be active immediately?
+          await pluginManager.loadPlugin(pathOrName, agent);
+
+          setIsProcessing(false);
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `✓ Plugin installed from ${pathOrName}`,
+              timestamp: new Date(),
+            },
+          ]);
+        } else if (action === "remove") {
+          const name = args[1];
+          if (!name) {
+            throw new Error("Usage: /plugin remove <name>");
+          }
+
+          await pluginManager.removePlugin(name);
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `✓ Plugin removed: ${name}`,
+              timestamp: new Date(),
+            },
+          ]);
+        } else {
+          throw new Error(`Unknown plugin action: ${action}`);
+        }
+      } catch (error: any) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `❌ Plugin Error: ${error.message}`,
+            timestamp: new Date(),
+          },
+        ]);
+        setIsProcessing(false);
       }
       clearInput();
       return true;
