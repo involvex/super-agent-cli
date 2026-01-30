@@ -1,3 +1,11 @@
+## [0.0.53](https://github.com/involvex/super-agent-cli/compare/v0.0.52...v0.0.53) (2026-01-30)
+
+### Features
+
+- **plugins:** add plugin system with management commands ([eeb78d0](https://github.com/involvex/super-agent-cli/commit/eeb78d0ccd90881ed89df4220e86ef5d87360d1b))
+
+## [0.0.52](https://github.com/involvex/super-agent-cli/compare/v0.0.51...v0.0.52) (2026-01-30)
+
 ## [0.0.51](https://github.com/involvex/super-agent-cli/compare/v0.0.50...v0.0.51) (2026-01-30)
 
 ### Features
