@@ -4,16 +4,19 @@ import {
 } from "../../utils/confirmation-service";
 import { useInputHandler } from "../../hooks/use-input-handler";
 import { ChatEntry, SuperAgent } from "../../agent/super-agent";
+import { MentionSuggestions } from "./mention-suggestions";
 import { CommandSuggestions } from "./command-suggestions";
 import ConfirmationDialog from "./confirmation-dialog";
 import { useEffect, useRef, useState } from "react";
 import { ModelSelection } from "./model-selection";
 import { LoadingSpinner } from "./loading-spinner";
+import { CommandPalette } from "./command-palette";
 import { ChatHistory } from "./chat-history";
 import ApiKeyInput from "./api-key-input";
 import { MCPStatus } from "./mcp-status";
 import { ChatInput } from "./chat-input";
 import { Box, Text } from "ink";
+
 import cfonts from "cfonts";
 
 interface ChatInterfaceProps {
@@ -48,9 +51,17 @@ function ChatInterfaceWithAgent({
     selectedCommandIndex,
     showModelSelection,
     selectedModelIndex,
-    commandSuggestions,
     availableModels,
     autoEditEnabled,
+    agentMode,
+    showMentionSuggestions,
+    commandSuggestions,
+    showCommandPalette,
+    commandPaletteQuery,
+    selectedPaletteIndex,
+    mentionSuggestions, // Added this based on the usage in the JSX
+    mentionQuery, // Added this based on the usage in the JSX
+    selectedMentionIndex, // Added this based on the usage in the JSX
   } = useInputHandler({
     agent,
     chatHistory,
@@ -345,8 +356,36 @@ function ChatInterfaceWithAgent({
             <Box marginRight={2}>
               <Text color="yellow">≋ {agent.getCurrentModel()}</Text>
             </Box>
+            <Box marginRight={2}>
+              <Text
+                color={
+                  agentMode === "plan"
+                    ? "cyan"
+                    : agentMode === "debug"
+                      ? "magenta"
+                      : "green"
+                }
+                bold
+              >
+                ◈ {agentMode.toUpperCase()} MODE
+              </Text>
+            </Box>
             <MCPStatus />
           </Box>
+
+          <MentionSuggestions
+            suggestions={mentionSuggestions}
+            query={mentionQuery}
+            selectedIndex={selectedMentionIndex}
+            isVisible={showMentionSuggestions}
+          />
+
+          <CommandPalette
+            files={mentionSuggestions}
+            query={commandPaletteQuery}
+            selectedIndex={selectedPaletteIndex}
+            isVisible={showCommandPalette}
+          />
 
           <CommandSuggestions
             suggestions={commandSuggestions}

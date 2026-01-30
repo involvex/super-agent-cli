@@ -1,3 +1,8 @@
+import {
+  FileEntry,
+  filterFileEntries,
+  listFilesRecursive,
+} from "../utils/file-utils";
 import { ConfirmationService } from "../utils/confirmation-service";
 import { Key, useEnhancedInput } from "./use-enhanced-input";
 import { ChatEntry, SuperAgent } from "../agent/super-agent";
@@ -7,6 +12,9 @@ import { useInput } from "ink";
 import { filterCommandSuggestions } from "../ui/components/command-suggestions";
 import { loadModelConfig, updateCurrentModel } from "../utils/model-config";
 import { getSettingsManager } from "../utils/settings-manager";
+import * as fs from "fs-extra";
+
+type AgentMode = "plan" | "code" | "debug";
 
 interface UseInputHandlerProps {
   agent: SuperAgent;
@@ -54,26 +62,105 @@ export function useInputHandler({
     return sessionFlags.allOperations;
   });
 
+  const [agentMode, setAgentMode] = useState<AgentMode>("code");
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
+  const [mentionSuggestions, setMentionSuggestions] = useState<FileEntry[]>([]);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [commandPaletteQuery, setCommandPaletteQuery] = useState("");
+  const [selectedPaletteIndex, setSelectedPaletteIndex] = useState(0);
+
+  // Load files for mentions on mount or periodically
+  useEffect(() => {
+    listFilesRecursive(process.cwd()).then(setMentionSuggestions);
+  }, []);
+
   const handleSpecialKey = (key: Key): boolean => {
     // Don't handle input if confirmation dialog is active
     if (isConfirmationActive) {
       return true; // Prevent default handling
     }
 
-    // Handle shift+tab to toggle auto-edit mode
+    // Handle shift+tab to toggle auto-edit mode -> Now cycles modes
     if (key.shift && key.tab) {
-      const newAutoEditState = !autoEditEnabled;
-      setAutoEditEnabled(newAutoEditState);
+      const modeCycle: AgentMode[] = ["plan", "code", "debug"];
+      const currentIndex = modeCycle.indexOf(agentMode);
+      const nextMode = modeCycle[(currentIndex + 1) % modeCycle.length];
+      setAgentMode(nextMode);
 
-      const confirmationService = ConfirmationService.getInstance();
-      if (newAutoEditState) {
-        // Enable auto-edit: set all operations to be accepted
-        confirmationService.setSessionFlag("allOperations", true);
-      } else {
-        // Disable auto-edit: reset session flags
-        confirmationService.resetSession();
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: `⏺ Switched mode to: ${nextMode.toUpperCase()}`,
+          timestamp: new Date(),
+        },
+      ]);
+      return true;
+    }
+
+    // Handle Shift+! (approximate trigger for shell mode)
+    if (key.shift && key.sequence === "!") {
+      const newInput = "!";
+      setInput(newInput);
+      setCursorPosition(newInput.length);
+      return true;
+    }
+
+    // Handle Ctrl+P for Command Palette
+    if (key.ctrl && (key.name === "p" || key.sequence === "\x10")) {
+      setShowCommandPalette(true);
+      setCommandPaletteQuery("");
+      setSelectedPaletteIndex(0);
+      return true;
+    }
+
+    // Handle command palette navigation
+    if (showCommandPalette) {
+      const filtered = filterFileEntries(
+        mentionSuggestions,
+        commandPaletteQuery,
+      );
+      if (key.upArrow) {
+        setSelectedPaletteIndex(prev =>
+          prev === 0 ? Math.max(0, filtered.length - 1) : prev - 1,
+        );
+        return true;
       }
-      return true; // Handled
+      if (key.downArrow) {
+        setSelectedPaletteIndex(
+          prev => (prev + 1) % Math.max(1, filtered.length),
+        );
+        return true;
+      }
+      if (key.return) {
+        if (filtered.length > 0) {
+          const selected = filtered[selectedPaletteIndex];
+          const newInput = input + " @" + selected.path + " ";
+          setInput(newInput);
+          setCursorPosition(newInput.length);
+        }
+        setShowCommandPalette(false);
+        return true;
+      }
+      if (key.escape) {
+        setShowCommandPalette(false);
+        return true;
+      }
+      // Capture typing for palette query
+      if (key.sequence && !key.ctrl && !key.meta && key.sequence.length === 1) {
+        setCommandPaletteQuery(prev => prev + key.sequence);
+        setSelectedPaletteIndex(0);
+        return true;
+      }
+      if (key.backspace) {
+        setCommandPaletteQuery(prev => prev.slice(0, -1));
+        setSelectedPaletteIndex(0);
+        return true;
+      }
+      return true; // Absorb other keys while palette is open
     }
 
     // Handle escape key for closing menus
@@ -168,6 +255,37 @@ export function useInputHandler({
       }
     }
 
+    // Handle mention suggestions navigation
+    if (showMentionSuggestions) {
+      const filtered = filterFileEntries(mentionSuggestions, mentionQuery);
+      if (filtered.length === 0) {
+        setShowMentionSuggestions(false);
+        return false;
+      }
+
+      if (key.upArrow) {
+        setSelectedMentionIndex(prev =>
+          prev === 0 ? filtered.length - 1 : prev - 1,
+        );
+        return true;
+      }
+      if (key.downArrow) {
+        setSelectedMentionIndex(prev => (prev + 1) % filtered.length);
+        return true;
+      }
+      if (key.tab || key.return) {
+        const selected = filtered[selectedMentionIndex];
+        const lastAtIndex = input.lastIndexOf("@");
+        const newInput =
+          input.slice(0, lastAtIndex) + "@" + selected.path + " ";
+        setInput(newInput);
+        setCursorPosition(newInput.length);
+        setShowMentionSuggestions(false);
+        setSelectedMentionIndex(0);
+        return true;
+      }
+    }
+
     return false; // Let default handling proceed
   };
 
@@ -191,7 +309,16 @@ export function useInputHandler({
       setSelectedCommandIndex(0);
     } else {
       setShowCommandSuggestions(false);
-      setSelectedCommandIndex(0);
+    }
+
+    // Update mention suggestions based on input
+    const mentionMatch = newInput.match(/@([\w\-\./]*)$/);
+    if (mentionMatch) {
+      setShowMentionSuggestions(true);
+      setMentionQuery(mentionMatch[1]);
+      setSelectedMentionIndex(0);
+    } else {
+      setShowMentionSuggestions(false);
     }
   };
 
@@ -697,9 +824,47 @@ Respond with ONLY the commit message, no additional text.`;
   };
 
   const processUserMessage = async (userInput: string) => {
+    let resolvedInput = userInput;
+
+    // Resolve mentions (@filename)
+    const mentionMatches = userInput.match(/@([\w\-\./]+)/g);
+    if (mentionMatches) {
+      for (const mention of mentionMatches) {
+        const filePath = mention.slice(1); // Remove @
+        try {
+          const stats = await fs.stat(filePath);
+          if (stats.isFile()) {
+            const content = await fs.readFile(filePath, "utf-8");
+            resolvedInput = resolvedInput.replace(
+              mention,
+              `\n\n--- FILE: ${filePath} ---\n${content}\n--- END FILE ---\n\n`,
+            );
+          } else if (stats.isDirectory()) {
+            const tree = await listFilesRecursive(filePath, process.cwd(), 1);
+            const structure = tree
+              .map(t => `${t.isDirectory ? "📁" : "📄"} ${t.path}`)
+              .join("\n");
+            resolvedInput = resolvedInput.replace(
+              mention,
+              `\n\n--- DIRECTORY: ${filePath} ---\n${structure}\n--- END DIRECTORY ---\n\n`,
+            );
+          }
+        } catch (e) {
+          // Skip if file not found
+        }
+      }
+    }
+
+    // Add mode context if needed
+    if (agentMode === "plan") {
+      resolvedInput = `[MODE: PLAN] ${resolvedInput}`;
+    } else if (agentMode === "debug") {
+      resolvedInput = `[MODE: DEBUG] ${resolvedInput}`;
+    }
+
     const userEntry: ChatEntry = {
       type: "user",
-      content: userInput,
+      content: userInput, // Keep original for UI
       timestamp: new Date(),
     };
     setChatHistory(prev => [...prev, userEntry]);
@@ -711,7 +876,7 @@ Respond with ONLY the commit message, no additional text.`;
       setIsStreaming(true);
       let streamingEntry: ChatEntry | null = null;
 
-      for await (const chunk of agent.processUserMessageStream(userInput)) {
+      for await (const chunk of agent.processUserMessageStream(resolvedInput)) {
         switch (chunk.type) {
           case "content":
             if (chunk.content) {
@@ -835,7 +1000,19 @@ Respond with ONLY the commit message, no additional text.`;
     selectedModelIndex,
     commandSuggestions,
     availableModels,
-    agent,
     autoEditEnabled,
+    setInput,
+    setCursorPosition,
+    clearInput,
+    resetHistory,
+    handleInput,
+    agentMode,
+    showMentionSuggestions,
+    selectedMentionIndex,
+    mentionSuggestions,
+    mentionQuery,
+    showCommandPalette,
+    commandPaletteQuery,
+    selectedPaletteIndex,
   };
 }
