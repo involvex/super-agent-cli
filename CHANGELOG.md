@@ -1,4 +1,4 @@
-## 0.0.34 (2026-01-30)
+## [0.0.35](https://github.com/involvex/grok-cli/compare/07ec1540c3e1049c8b5653f73af1a2d7e620aba6...v0.0.35) (2026-01-30)
 
 ### Bug Fixes
 

@@ -6,6 +6,7 @@ import ChatInterface from "./ui/components/chat-interface";
 import { createMCPCommand } from "./commands/mcp";
 import { SuperAgent } from "./agent/super-agent";
 import { program } from "commander";
+import pkg from "../package.json";
 import * as dotenv from "dotenv";
 import { render } from "ink";
 import React from "react";
@@ -324,7 +325,7 @@ program
   .description(
     "A conversational AI CLI tool powered by Super Agent with text editor capabilities",
   )
-  .version("1.0.1")
+  .version(pkg.version)
   .argument("[message...]", "Initial message to send to Super Agent")
   .option("-d, --directory <dir>", "set working directory", process.cwd())
   .option(
@@ -417,6 +418,42 @@ program
     }
   });
 
+const aboutCommand = program
+  .command("about")
+  .description("Show information about the Super Agent CLI")
+  .action(() => {
+    console.log(pkg.name + " " + pkg.version);
+    console.log(pkg.description);
+    process.exit(0);
+  });
+
+const pluginsCommand = program
+  .command("plugins list/install/uninstall <name> / <path>")
+  .description("Manage plugins for Super Agent CLI");
+
+pluginsCommand
+  .command("list")
+  .description("List installed plugins")
+  .action(() => {
+    console.log("List installed plugins");
+    process.exit(0);
+  });
+
+pluginsCommand
+  .command("install <name> / <path>")
+  .description("Install a plugin")
+  .action(() => {
+    console.log("Install a plugin");
+    process.exit(0);
+  });
+
+pluginsCommand
+  .command("uninstall <name>")
+  .description("Uninstall a plugin")
+  .action(() => {
+    console.log("Uninstall a plugin");
+    process.exit(0);
+  });
 // Git subcommand
 const gitCommand = program
   .command("git")
