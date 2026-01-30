@@ -1,3 +1,9 @@
+## [0.0.64](https://github.com/involvex/super-agent-cli/compare/v0.0.63...v0.0.64) (2026-01-30)
+
+### Features
+
+- **core:** add listModels capability and Cloudflare Workers AI support ([17bd521](https://github.com/involvex/super-agent-cli/commit/17bd521d929cb15df94679d37803e3ad9ed05709))
+
 ## [0.0.63](https://github.com/involvex/super-agent-cli/compare/v0.0.62...v0.0.63) (2026-01-30)
 
 ### Features
