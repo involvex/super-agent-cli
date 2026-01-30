@@ -1,3 +1,9 @@
+## [0.0.49](https://github.com/involvex/super-agent-cli/compare/v0.0.48...v0.0.49) (2026-01-30)
+
+### Features
+
+- **provider:** enable runtime provider switching ([087a57d](https://github.com/involvex/super-agent-cli/commit/087a57d9dda985a7bb7696e12a576fd8f16eb087))
+
 ## [0.0.48](https://github.com/involvex/super-agent-cli/compare/v0.0.47...v0.0.48) (2026-01-30)
 
 ### Features
