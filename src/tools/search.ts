@@ -1,4 +1,5 @@
 import { ConfirmationService } from "../utils/confirmation-service";
+import { getFileIndexer } from "../indexing/indexer";
 import { ToolResult } from "../types/index";
 import { spawn } from "child_process";
 import * as path from "path";
@@ -71,7 +72,29 @@ export class SearchTool {
 
       // Search for files if requested
       if (searchType === "files" || searchType === "both") {
-        const fileResults = await this.findFilesByPattern(query, options);
+        const indexer = getFileIndexer();
+        const index = indexer.getIndex();
+
+        let fileResults;
+
+        if (index && !options.includeHidden && !options.excludePattern) {
+          // Use cached index if available and no complex filters (basic implementation)
+          // If query is simple, we can filter entries
+          const entries = index.entries;
+          const searchPattern = query.toLowerCase();
+
+          fileResults = entries
+            .filter(e => e.path.toLowerCase().includes(searchPattern))
+            .map(e => ({
+              path: e.path,
+              name: path.basename(e.path),
+              score: 10, // Simplified scoring for now
+            }));
+        } else {
+          // Fallback to crawl
+          fileResults = await this.findFilesByPattern(query, options);
+        }
+
         results.push(
           ...fileResults.map(r => ({
             type: "file" as const,

@@ -20,6 +20,7 @@ import { getSettingsManager } from "../utils/settings-manager";
 import { OpenAIProvider } from "../core/providers/openai";
 import { GeminiProvider } from "../core/providers/gemini";
 import { GrokProvider } from "../core/providers/grok";
+import { getFileIndexer } from "../indexing/indexer";
 import { loadMCPConfig } from "../mcp/config";
 import { ToolResult } from "../types";
 import { EventEmitter } from "events";
@@ -131,6 +132,15 @@ export class SuperAgent extends EventEmitter {
     this.search = new SearchTool();
     this.projectMap = new ProjectMapTool();
     this.tokenCounter = createTokenCounter(effectiveModel);
+
+    // Initialize FileIndexer background scan
+    const indexer = getFileIndexer();
+    indexer.loadIndex().then(() => {
+      // Start background scan quietly
+      indexer
+        .fullScan()
+        .catch(err => console.error("Background index scan failed:", err));
+    });
 
     // Initialize MCP servers if configured
     this.initializeMCP();
