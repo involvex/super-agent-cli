@@ -1,3 +1,9 @@
+## [0.0.48](https://github.com/involvex/super-agent-cli/compare/v0.0.47...v0.0.48) (2026-01-30)
+
+### Features
+
+- **provider:** add OpenAI Compatible provider and multi-provider support ([41c2e89](https://github.com/involvex/super-agent-cli/commit/41c2e896ef2ab724a3ccdb47b923c7a0069d3077))
+
 ## [0.0.47](https://github.com/involvex/super-agent-cli/compare/v0.0.46...v0.0.47) (2026-01-30)
 
 ## [0.0.46](https://github.com/involvex/super-agent-cli/compare/v0.0.45...v0.0.46) (2026-01-30)
