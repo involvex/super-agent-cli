@@ -1,3 +1,9 @@
+## [0.0.51](https://github.com/involvex/super-agent-cli/compare/v0.0.50...v0.0.51) (2026-01-30)
+
+### Features
+
+- **mcp:** add MCP server management commands ([08c24fd](https://github.com/involvex/super-agent-cli/commit/08c24fdef96f69462948e466a198007ead4b1ee0))
+
 ## [0.0.50](https://github.com/involvex/super-agent-cli/compare/v0.0.49...v0.0.50) (2026-01-30)
 
 ### Features
