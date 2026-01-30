@@ -79,6 +79,7 @@ export function useInputHandler({
   const [selectedProviderIndex, setSelectedProviderIndex] = useState(0);
 
   const [showConfigViewer, setShowConfigViewer] = useState(false);
+  const [customCommandsVersion, setCustomCommandsVersion] = useState(0);
 
   // Load files for mentions on mount or periodically
   useEffect(() => {
@@ -234,7 +235,14 @@ export function useInputHandler({
         if (providers.length > 0) {
           const selectedProviderId = providers[selectedProviderIndex];
           manager.updateUserSetting("active_provider", selectedProviderId);
-          // Also check project settings if they override?
+
+          // Update agent with new provider
+          try {
+            agent.setProvider(selectedProviderId);
+          } catch (error) {
+            console.error("Error setting provider:", error);
+          }
+
           // But setActiveProvider updates local state which drives the UI.
           setActiveProvider(selectedProviderId);
 
@@ -583,7 +591,7 @@ export function useInputHandler({
     }));
 
     return [...baseCommands, ...customSuggestions];
-  }, []);
+  }, [customCommandsVersion]);
 
   const [activeProvider, setActiveProvider] = useState(() => {
     return getSettingsManager().loadUserSettings().active_provider;
@@ -777,6 +785,7 @@ Config Commands:
 
         const newCommands = { ...customCommands, [name]: prompt };
         manager.updateUserSetting("custom_commands", newCommands);
+        setCustomCommandsVersion(v => v + 1);
 
         setChatHistory(prev => [
           ...prev,
@@ -805,6 +814,7 @@ Config Commands:
         const newCommands = { ...customCommands };
         delete newCommands[name];
         manager.updateUserSetting("custom_commands", newCommands);
+        setCustomCommandsVersion(v => v + 1);
 
         setChatHistory(prev => [
           ...prev,
