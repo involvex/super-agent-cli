@@ -72,6 +72,11 @@ export function useInputHandler({
   const [commandPaletteQuery, setCommandPaletteQuery] = useState("");
   const [selectedPaletteIndex, setSelectedPaletteIndex] = useState(0);
 
+  const [showProviderSelection, setShowProviderSelection] = useState(false);
+  const [selectedProviderIndex, setSelectedProviderIndex] = useState(0);
+
+  const [showConfigViewer, setShowConfigViewer] = useState(false);
+
   // Load files for mentions on mount or periodically
   useEffect(() => {
     listFilesRecursive(process.cwd()).then(setMentionSuggestions);
@@ -202,6 +207,56 @@ export function useInputHandler({
         return true;
       }
       return true; // Absorb other keys while palette is open
+    }
+
+    // Handle provider selection navigation
+    if (showProviderSelection) {
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      const providers = Object.keys(settings.providers || {});
+
+      if (key.upArrow) {
+        setSelectedProviderIndex(prev =>
+          prev === 0 ? Math.max(0, providers.length - 1) : prev - 1,
+        );
+        return true;
+      }
+      if (key.downArrow) {
+        setSelectedProviderIndex(
+          prev => (prev + 1) % Math.max(1, providers.length),
+        );
+        return true;
+      }
+      if (key.return || key.tab) {
+        if (providers.length > 0) {
+          const selectedProviderId = providers[selectedProviderIndex];
+          manager.updateUserSetting("active_provider", selectedProviderId);
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `✓ Switched active provider to: ${selectedProviderId}`,
+              timestamp: new Date(),
+            },
+          ]);
+        }
+        setShowProviderSelection(false);
+        return true;
+      }
+      if (key.escape) {
+        setShowProviderSelection(false);
+        return true;
+      }
+      return true; // Absorb other keys while provider selection is open
+    }
+
+    // Handle config viewer
+    if (showConfigViewer) {
+      if (key.escape) {
+        setShowConfigViewer(false);
+        return true;
+      }
+      return true; // Absorb other keys while config viewer is open
     }
 
     // Handle escape key for closing menus
@@ -488,43 +543,14 @@ Config Commands:
     }
 
     if (trimmedInput === "/config") {
-      const manager = getSettingsManager();
-      const settings = manager.loadUserSettings();
-      const activeProvider = settings.active_provider;
-      const activeConfig = settings.providers[activeProvider];
-
-      const content = `Current Configuration:
-- Active Provider: ${activeProvider}
-- API Key: ${activeConfig?.api_key ? "********" : "(not set)"}
-- Base URL: ${activeConfig?.base_url || "(default)"}
-- Model: ${activeConfig?.model || "(default)"}
-- Theme: ${settings.ui.theme}
-
-Use '/provider' to see all providers.
-Use '/provider use <id>' to switch.
-`;
-      setChatHistory(prev => [
-        ...prev,
-        { type: "assistant", content, timestamp: new Date() },
-      ]);
+      setShowConfigViewer(true);
       clearInput();
       return true;
     }
 
     if (trimmedInput === "/provider") {
-      const manager = getSettingsManager();
-      const settings = manager.loadUserSettings();
-      const providers = Object.keys(settings.providers || {});
-      const active = settings.active_provider;
-
-      const content = `Configured Providers:
-${providers.map(p => `- ${p} ${p === active ? "(active)" : ""}`).join("\n")}
-
-Use '/provider use <id>' to switch provider.`;
-      setChatHistory(prev => [
-        ...prev,
-        { type: "assistant", content, timestamp: new Date() },
-      ]);
+      setShowProviderSelection(true);
+      setSelectedProviderIndex(0);
       clearInput();
       return true;
     }
@@ -1124,5 +1150,8 @@ Respond with ONLY the commit message, no additional text.`;
     showCommandPalette,
     commandPaletteQuery,
     selectedPaletteIndex,
+    showProviderSelection,
+    selectedProviderIndex,
+    showConfigViewer,
   };
 }

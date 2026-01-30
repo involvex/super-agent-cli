@@ -6,11 +6,13 @@ import { useInputHandler } from "../../hooks/use-input-handler";
 import { ChatEntry, SuperAgent } from "../../agent/super-agent";
 import { MentionSuggestions } from "./mention-suggestions";
 import { CommandSuggestions } from "./command-suggestions";
+import { ProviderSelection } from "./provider-selection";
 import ConfirmationDialog from "./confirmation-dialog";
 import { useEffect, useRef, useState } from "react";
 import { ModelSelection } from "./model-selection";
 import { LoadingSpinner } from "./loading-spinner";
 import { CommandPalette } from "./command-palette";
+import { ConfigViewer } from "./config-viewer";
 import { ChatHistory } from "./chat-history";
 import ApiKeyInput from "./api-key-input";
 import { MCPStatus } from "./mcp-status";
@@ -62,6 +64,9 @@ function ChatInterfaceWithAgent({
     mentionSuggestions, // Added this based on the usage in the JSX
     mentionQuery, // Added this based on the usage in the JSX
     selectedMentionIndex, // Added this based on the usage in the JSX
+    showProviderSelection,
+    selectedProviderIndex,
+    showConfigViewer,
   } = useInputHandler({
     agent,
     chatHistory,
@@ -338,6 +343,59 @@ function ChatInterfaceWithAgent({
                 isVisible={showCommandPalette}
               />
             </Box>
+          ) : showProviderSelection ? (
+            <Box flexDirection="column" marginTop={1}>
+              <ProviderSelection
+                providers={(() => {
+                  const {
+                    getSettingsManager,
+                  } = require("../../utils/settings-manager");
+                  const manager = getSettingsManager();
+                  const settings = manager.loadUserSettings();
+                  const active = settings.active_provider;
+                  return Object.keys(settings.providers || {}).map(id => ({
+                    id,
+                    name: id,
+                    isActive: id === active,
+                    hasApiKey: !!settings.providers[id]?.api_key,
+                    model: settings.providers[id]?.model,
+                  }));
+                })()}
+                selectedIndex={selectedProviderIndex}
+                isVisible={showProviderSelection}
+              />
+            </Box>
+          ) : showConfigViewer ? (
+            <Box flexDirection="column" marginTop={1}>
+              <ConfigViewer
+                config={(() => {
+                  const {
+                    getSettingsManager,
+                  } = require("../../utils/settings-manager");
+                  const manager = getSettingsManager();
+                  const settings = manager.loadUserSettings();
+                  const activeProvider = settings.active_provider;
+                  const activeConfig = settings.providers[activeProvider];
+                  return {
+                    activeProvider,
+                    apiKeySet: !!activeConfig?.api_key,
+                    baseUrl: activeConfig?.base_url,
+                    model: activeConfig?.model,
+                    theme: settings.ui.theme,
+                  };
+                })()}
+                isVisible={showConfigViewer}
+              />
+            </Box>
+          ) : showModelSelection ? (
+            <Box flexDirection="column" marginTop={1}>
+              <ModelSelection
+                models={availableModels}
+                selectedIndex={selectedModelIndex}
+                isVisible={showModelSelection}
+                currentModel={agent.getCurrentModel()}
+              />
+            </Box>
           ) : (
             <>
               <LoadingSpinner
@@ -416,13 +474,6 @@ function ChatInterfaceWithAgent({
                 input={input}
                 selectedIndex={selectedCommandIndex}
                 isVisible={showCommandSuggestions}
-              />
-
-              <ModelSelection
-                models={availableModels}
-                selectedIndex={selectedModelIndex}
-                isVisible={showModelSelection}
-                currentModel={agent.getCurrentModel()}
               />
             </>
           )}
