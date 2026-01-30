@@ -1,6 +1,10 @@
-import type { ChatCompletionMessageParam } from "openai/resources/chat";
-
-export type LLMMessage = ChatCompletionMessageParam;
+export interface LLMMessage {
+  role: "system" | "user" | "assistant" | "tool";
+  content: string;
+  name?: string;
+  tool_calls?: LLMToolCall[];
+  tool_call_id?: string;
+}
 
 export interface LLMTool {
   type: "function";

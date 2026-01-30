@@ -73,10 +73,10 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
     zai: {
       id: "zai",
       provider: "zai",
-      model: "grok-code-fast-1",
+      model: "glm-4.7",
       api_key: "",
-      base_url: "https://api.x.ai/v1",
-      default_model: "grok-code-fast-1",
+      base_url: "https://api.z.ai/api/paas/v4",
+      default_model: "glm-4.7",
     },
     openai: {
       id: "openai",
@@ -89,10 +89,10 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
     gemini: {
       id: "gemini",
       provider: "gemini",
-      model: "gemini-3-pro-preview",
+      model: "gemini-3-flash-preview",
       api_key: "",
-      base_url: "https://generativelanguage.googleapis.com/v1beta/openai",
-      default_model: "gemini-3-pro-preview",
+      base_url: "", // Will use official SDK defaults
+      default_model: "gemini-3-flash-preview",
     },
   },
   ui: {
@@ -281,12 +281,12 @@ export class SettingsManager {
     return config?.api_key;
   }
 
-  public getBaseURL(): string {
+  public getBaseURL(): string | undefined {
     if (process.env.SUPER_AGENT_BASE_URL) {
       return process.env.SUPER_AGENT_BASE_URL;
     }
     const config = this.getActiveProviderConfig();
-    return config?.base_url || "https://api.x.ai/v1";
+    return config?.base_url || undefined;
   }
 }
 

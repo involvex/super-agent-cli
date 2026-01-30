@@ -43,6 +43,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@modelcontextprotocol/sdk": "^1.25.3",
     "axios": "^1.13.4",
     "cfonts": "^3.3.1",
@@ -55,6 +56,7 @@
     "ink": "^6.6.0",
     "marked": "^17.0.1",
     "marked-terminal": "^7.3.0",
+    "mime": "^4.1.0",
     "openai": "^6.17.0",
     "react": "^19.2.4",
     "ripgrep-node": "^1.0.0",
