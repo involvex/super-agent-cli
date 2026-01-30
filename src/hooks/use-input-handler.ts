@@ -101,8 +101,40 @@ export function useInputHandler({
       return true;
     }
 
+    // Handle Ctrl+Y for YOLO mode (Toggle auto-edit)
+    // Ctrl+Y is usually 0x19 (\x19)
+    if (
+      (key.ctrl && (key.name === "y" || key.sequence === "\x19")) ||
+      key.sequence === "\x19"
+    ) {
+      const newAutoEditState = !autoEditEnabled;
+      setAutoEditEnabled(newAutoEditState);
+
+      const confirmationService = ConfirmationService.getInstance();
+      if (newAutoEditState) {
+        confirmationService.setSessionFlag("allOperations", true);
+      } else {
+        confirmationService.resetSession();
+      }
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: `🚀 YOLO Mode: ${newAutoEditState ? "ENABLED" : "DISABLED"}`,
+          timestamp: new Date(),
+        },
+      ]);
+      return true;
+    }
+
     // Handle Shift+! (approximate trigger for shell mode)
-    if (key.shift && key.sequence === "!") {
+    // In many terminals, '!' comes in sequence independently of shift flag
+    if (
+      key.sequence === "!" ||
+      (key.shift && key.sequence === "!") ||
+      (key.ctrl && (key.name === "1" || key.sequence === "!"))
+    ) {
       const newInput = "!";
       setInput(newInput);
       setCursorPosition(newInput.length);
@@ -110,7 +142,11 @@ export function useInputHandler({
     }
 
     // Handle Ctrl+P for Command Palette
-    if (key.ctrl && (key.name === "p" || key.sequence === "\x10")) {
+    // Ctrl+P is usually 0x10 (\x10)
+    if (
+      (key.ctrl && (key.name === "p" || key.sequence === "\x10")) ||
+      key.sequence === "\x10"
+    ) {
       setShowCommandPalette(true);
       setCommandPaletteQuery("");
       setSelectedPaletteIndex(0);

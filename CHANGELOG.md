@@ -1,3 +1,9 @@
+## [0.0.40](https://github.com/involvex/super-agent-cli/compare/v0.0.39...v0.0.40) (2026-01-30)
+
+### Features
+
+- **cli:** add agent modes, file mentions, and command palette ([91d9e62](https://github.com/involvex/super-agent-cli/commit/91d9e62ecfc3ef9452f10095a8c644345fe82697))
+
 ## [0.0.39](https://github.com/involvex/super-agent-cli/compare/v0.0.38...v0.0.39) (2026-01-30)
 
 ### Features

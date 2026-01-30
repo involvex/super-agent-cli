@@ -342,20 +342,17 @@ function ChatInterfaceWithAgent({
             isStreaming={isStreaming}
           />
 
-          <Box flexDirection="row" marginTop={1}>
+          <Box flexDirection="row" marginTop={1} flexWrap="wrap">
             <Box marginRight={2}>
               <Text color="cyan">
-                {autoEditEnabled ? "▶" : "⏸"} auto-edit:{" "}
-                {autoEditEnabled ? "on" : "off"}
+                {autoEditEnabled ? "🚀" : "⏸"} yolo:{" "}
+                {autoEditEnabled ? "on" : "off"}{" "}
               </Text>
               <Text color="gray" dimColor>
-                {" "}
-                (shift + tab)
+                (ctrl+y)
               </Text>
             </Box>
-            <Box marginRight={2}>
-              <Text color="yellow">≋ {agent.getCurrentModel()}</Text>
-            </Box>
+
             <Box marginRight={2}>
               <Text
                 color={
@@ -367,9 +364,32 @@ function ChatInterfaceWithAgent({
                 }
                 bold
               >
-                ◈ {agentMode.toUpperCase()} MODE
+                ◈ {agentMode.toUpperCase()}
+              </Text>
+              <Text color="gray" dimColor>
+                {" "}
+                (shift+tab)
               </Text>
             </Box>
+
+            <Box marginRight={2}>
+              <Text color="magenta">🔍 palette </Text>
+              <Text color="gray" dimColor>
+                (ctrl+p)
+              </Text>
+            </Box>
+
+            <Box marginRight={2}>
+              <Text color="cyan">🐚 shell </Text>
+              <Text color="gray" dimColor>
+                (!)
+              </Text>
+            </Box>
+
+            <Box marginRight={2}>
+              <Text color="yellow">≋ {agent.getCurrentModel()}</Text>
+            </Box>
+
             <MCPStatus />
           </Box>
 

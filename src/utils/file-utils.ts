@@ -32,8 +32,12 @@ export async function listFilesRecursive(
         "vendor",
       ].includes(entry.name);
 
-      if (isIgnored) {continue;}
-      if (entry.name.startsWith(".") && entry.name !== ".env") {continue;}
+      if (isIgnored) {
+        continue;
+      }
+      if (entry.name.startsWith(".") && entry.name !== ".env") {
+        continue;
+      }
 
       result.push({
         name: entry.name,
@@ -64,7 +68,9 @@ export function filterFileEntries(
   entries: FileEntry[],
   query: string,
 ): FileEntry[] {
-  if (!query) {return entries.slice(0, 20);}
+  if (!query) {
+    return entries.slice(0, 20);
+  }
 
   const lowerQuery = query.toLowerCase();
   return entries
@@ -73,8 +79,12 @@ export function filterFileEntries(
       // Prioritize exact name matches
       const aLower = a.name.toLowerCase();
       const bLower = b.name.toLowerCase();
-      if (aLower === lowerQuery && bLower !== lowerQuery) {return -1;}
-      if (bLower === lowerQuery && aLower !== lowerQuery) {return 1;}
+      if (aLower === lowerQuery && bLower !== lowerQuery) {
+        return -1;
+      }
+      if (bLower === lowerQuery && aLower !== lowerQuery) {
+        return 1;
+      }
 
       // Prioritize path starts with query
       const aPathLower = a.path.toLowerCase();
@@ -82,13 +92,15 @@ export function filterFileEntries(
       if (
         aPathLower.startsWith(lowerQuery) &&
         !bPathLower.startsWith(lowerQuery)
-      )
-        {return -1;}
+      ) {
+        return -1;
+      }
       if (
         bPathLower.startsWith(lowerQuery) &&
         !aPathLower.startsWith(lowerQuery)
-      )
-        {return 1;}
+      ) {
+        return 1;
+      }
 
       return a.path.length - b.path.length;
     })
