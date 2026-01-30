@@ -537,8 +537,10 @@ export function useInputHandler({
   const commandSuggestions: CommandSuggestion[] = [
     { command: "/help", description: "Show help information" },
     { command: "/clear", description: "Clear chat history" },
+    { command: "/doctor", description: "Check status & connection" },
     { command: "/models", description: "Switch Super Agent Model" },
     { command: "/config", description: "View or edit configuration" },
+    { command: "/commands", description: "Manage custom commands" },
     { command: "/provider", description: "Manage AI providers" },
     { command: "/chat save <name>", description: "Save current chat" },
     { command: "/chat load <name>", description: "Load a saved chat" },
@@ -635,9 +637,11 @@ export function useInputHandler({
 Built-in Commands:
   /clear      - Clear chat history
   /help       - Show this help
+  /doctor     - Check system health & connection
   /models     - Switch between available models
   /config     - View current configuration
   /provider   - List or switch AI providers
+  /commands   - Manage custom slash commands
   /exit       - Exit application
   exit, quit  - Exit application
 
@@ -654,6 +658,7 @@ Config Commands:
   /config             - View current active configuration
   /provider           - List configured providers
   /provider use <id>  - Switch active AI provider
+  /provider set-account <id> <acc_id> - Set account ID (e.g. workers-ai)
   /model set <id>     - Set active model for current provider
 `,
         timestamp: new Date(),
