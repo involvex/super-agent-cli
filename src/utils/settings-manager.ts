@@ -47,6 +47,16 @@ export const PROVIDER_MODELS: Record<string, string[]> = {
   deepseek: ["deepseek-chat", "deepseek-coder"],
   ollama: ["llama3", "mistral", "codellama"], // local, dynamic but hardcoded start
   "workers-ai": ["@cf/meta/llama-3.1-70b-instruct"],
+  zai: [
+    "GLM-4.7",
+    "GLM-4.5-Air",
+    "GLM-4.5",
+    "GLM-4.5-Airx",
+    "GLM-4.5-Flash",
+    "GLM-4.5-X",
+    "GLM-4.5v",
+    "GLM-4.6",
+  ],
 };
 
 export interface ProviderConfig {
@@ -195,10 +205,10 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
     zai: {
       id: "zai",
       provider: "zai",
-      model: "glm-4.7",
+      model: "GLM-4.7",
       api_key: "",
       base_url: "https://api.z.ai/api/coding/paas/v4/",
-      default_model: "glm-4.7",
+      default_model: "GLM-4.7",
     },
   },
   ui: {

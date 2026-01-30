@@ -19,9 +19,15 @@ export class OpenAICompatibleProvider implements LLMProvider {
     name: string = "openai-compatible",
   ) {
     this.name = name;
+    // Clean baseURL: remove trailing slash and /v1 or /paas/v4 if the SDK handles it,
+    // but usually OpenAI SDK appending /chat/completions is enough.
+    const cleanBaseURL = baseURL?.endsWith("/")
+      ? baseURL.slice(0, -1)
+      : baseURL;
+
     this.client = new OpenAI({
-      apiKey: apiKey || "dummy-key", // Some providers don't need a key or user might trigger this without one set yet
-      baseURL,
+      apiKey: apiKey || "dummy-key",
+      baseURL: cleanBaseURL,
       timeout: 360000,
     });
     this.currentModel = model;
@@ -53,7 +59,9 @@ export class OpenAICompatibleProvider implements LLMProvider {
         model,
         messages,
         tools: tools.length > 0 ? tools : undefined,
-        tool_choice: tools.length > 0 ? "auto" : undefined,
+        // Some providers like ZAI (Zhipu AI) might fail with tool_choice: 'auto' if not clearly generating a tool call
+        tool_choice:
+          tools.length > 0 && this.name !== "zai" ? "auto" : undefined,
         temperature: 0.7,
         max_tokens: this.defaultMaxTokens,
       };
@@ -82,7 +90,8 @@ export class OpenAICompatibleProvider implements LLMProvider {
         model,
         messages,
         tools: tools.length > 0 ? tools : undefined,
-        tool_choice: tools.length > 0 ? "auto" : undefined,
+        tool_choice:
+          tools.length > 0 && this.name !== "zai" ? "auto" : undefined,
         temperature: 0.7,
         max_tokens: this.defaultMaxTokens,
         stream: true,
