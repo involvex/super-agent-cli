@@ -2,7 +2,7 @@ import type {
   PluginContext,
   SuperAgentPlugin,
   SuperAgentTool,
-} from "../../shared/types";
+} from "@involvex/super-agent-cli/@plugins/shared/types";
 
 interface NotifyConfig {
   sound?: boolean;
@@ -56,7 +56,7 @@ const sendNotificationTool: SuperAgentTool = {
           const { promisify } = await import("util");
           const execAsync = promisify(exec);
 
-          const script = `display notification "${args.message.replace(/"/g, '\\"')}" with title "${args.title.replace(/"/g, '\\"')}"`;
+          const script = `display notification "${args.message.replace(/"/g, '\\"')}" with title "${args.title.replace(/'/g, "''")}"`;
           await execAsync(`osascript -e '${script}'`);
 
           return `Notification sent: "${args.title}"`;

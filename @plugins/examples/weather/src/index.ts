@@ -2,7 +2,7 @@ import type {
   PluginContext,
   SuperAgentPlugin,
   SuperAgentTool,
-} from "../../shared/types";
+} from "@involvex/super-agent-cli/@plugins/shared/types";
 
 interface WeatherConfig {
   apiKey?: string;
@@ -63,18 +63,18 @@ const getWeatherTool: SuperAgentTool = {
           return `Error: Weather API returned status ${response.status}`;
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as any;
 
         // Format response
         const tempUnit = units === "metric" ? "°C" : "°F";
         const speedUnit = units === "metric" ? "m/s" : "mph";
 
-        return `Weather in ${data.name}, ${data.sys.country}:
-- Conditions: ${data.weather[0].description}
-- Temperature: ${data.main.temp}${tempUnit} (feels like ${data.main.feels_like}${tempUnit})
-- Humidity: ${data.main.humidity}%
-- Wind: ${data.wind.speed} ${speedUnit}
-- Pressure: ${data.main.pressure} hPa`;
+        return `Weather in ${data.name ?? "Unknown"}, ${data.sys.country ?? "Unknown"}:
+- Conditions: ${data.weather[0].description ?? "Unknown"}
+- Temperature: ${data.main.temp ?? "Unknown"}${tempUnit} (feels like ${data.main.feels_like ?? "Unknown"}${tempUnit})
+- Humidity: ${data.main.humidity ?? "Unknown"}%
+- Wind: ${data.wind.speed ?? "Unknown"} ${speedUnit}
+- Pressure: ${data.main.pressure ?? "Unknown"} hPa`;
       } catch (error: any) {
         return `Error fetching weather data: ${error.message}`;
       }

@@ -2,7 +2,7 @@ import type {
   PluginContext,
   SuperAgentPlugin,
   SuperAgentTool,
-} from "../../shared/types";
+} from "@involvex/super-agent-cli/@plugins/shared/types";
 
 // Example tool that demonstrates the basic plugin pattern
 const exampleTool: SuperAgentTool = {

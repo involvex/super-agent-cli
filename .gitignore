@@ -101,3 +101,12 @@ temp/
 .claude/
 .grok/
 .super-agent/
+
+@plugins/node_modules
+@plugins/dist
+@plugins/.bun
+@plugins/.claude
+@plugins/.grok
+@plugins/.super-agent
+@plugins/.env
+@plugins/.env.local
