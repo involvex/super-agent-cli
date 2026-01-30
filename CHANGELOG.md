@@ -1,3 +1,9 @@
+## [0.0.62](https://github.com/involvex/super-agent-cli/compare/v0.0.61...v0.0.62) (2026-01-30)
+
+### Features
+
+- **cli:** refactor command architecture and introduce agents/skills management ([0bef26e](https://github.com/involvex/super-agent-cli/commit/0bef26ef8d3fc9360369c35ebf9835425dbe6f89))
+
 ## [0.0.61](https://github.com/involvex/super-agent-cli/compare/v0.0.60...v0.0.61) (2026-01-30)
 
 ### Features
