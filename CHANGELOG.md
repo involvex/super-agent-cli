@@ -1,3 +1,10 @@
+## [0.0.63](https://github.com/involvex/super-agent-cli/compare/v0.0.62...v0.0.63) (2026-01-30)
+
+### Features
+
+- **cli:** add import command for cross-assistant resource migration ([2f0b1cc](https://github.com/involvex/super-agent-cli/commit/2f0b1cc8538cdc9ed1e000edf2460947d8f43750))
+- **provider:** add /provider set-key command for direct API key configuration ([79dce9b](https://github.com/involvex/super-agent-cli/commit/79dce9b558a7a7a105e9fd084f56d40266146067))
+
 ## [0.0.62](https://github.com/involvex/super-agent-cli/compare/v0.0.61...v0.0.62) (2026-01-30)
 
 ### Features
