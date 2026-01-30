@@ -22,6 +22,19 @@ const SLASH_COMMANDS = [
   { cmd: "/help", desc: "Show help" },
 ];
 
+// Security: HTML escape utility to prevent XSS
+function escapeHtml(unsafe) {
+  if (typeof unsafe !== "string") {
+    return "";
+  }
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 // Connect to WebSocket
 function connect() {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -71,10 +84,16 @@ function updateStatus(text, className = "") {
 function showUpdateBanner(currentVersion, latestVersion) {
   const banner = document.createElement("div");
   banner.className = "update-banner";
-  banner.innerHTML = `
-        <span>📦 Update available: ${currentVersion} → ${latestVersion}</span>
-        <button onclick="this.parentElement.remove()">✕</button>
-    `;
+
+  const span = document.createElement("span");
+  span.textContent = `📦 Update available: ${currentVersion} → ${latestVersion}`;
+
+  const button = document.createElement("button");
+  button.textContent = "✕";
+  button.onclick = () => banner.remove();
+
+  banner.appendChild(span);
+  banner.appendChild(button);
   document.body.insertBefore(banner, document.body.firstChild);
 }
 
@@ -161,18 +180,21 @@ function renderFileTree(tree) {
 
   // Show directories first
   directories.slice(0, 50).forEach(dir => {
+    const safeName = escapeHtml(dir.name);
     html += `
             <div class="file-item directory">
-                📁 ${dir.name}
+                📁 ${safeName}
             </div>
         `;
   });
 
   // Then files
   files.slice(0, 100).forEach(file => {
+    const safeName = escapeHtml(file.name);
+    const safePath = escapeHtml(file.path);
     html += `
-            <div class="file-item" onclick="viewFile('${file.path}')">
-                📄 ${file.name}
+            <div class="file-item" onclick="viewFile('${safePath}')">
+                📄 ${safeName}
             </div>
         `;
   });
@@ -190,10 +212,15 @@ function renderSessions(sessions) {
   let html = "";
   sessions.forEach(session => {
     const date = new Date(session.lastAccessed).toLocaleDateString();
+    const safeName = escapeHtml(session.name);
+    const safeId = escapeHtml(session.id);
+    const safeCount = escapeHtml(String(session.messageCount || 0));
+    const safeDate = escapeHtml(date);
+
     html += `
-            <div class="session-item" onclick="switchSession('${session.id}')">
-                <div class="session-name">${session.name}</div>
-                <div class="session-meta">${session.messageCount} messages · ${date}</div>
+            <div class="session-item" onclick="switchSession('${safeId}')">
+                <div class="session-name">${safeName}</div>
+                <div class="session-meta">${safeCount} messages · ${safeDate}</div>
             </div>
         `;
   });
@@ -249,9 +276,11 @@ function handleAutocomplete(input) {
 
   let html = "";
   matches.forEach((cmd, index) => {
+    const safeCmd = escapeHtml(cmd.cmd);
+    const safeDesc = escapeHtml(cmd.desc);
     html += `
-            <div class="autocomplete-item" data-cmd="${cmd.cmd}" data-index="${index}">
-                <strong>${cmd.cmd}</strong> - ${cmd.desc}
+            <div class="autocomplete-item" data-cmd="${safeCmd}" data-index="${index}">
+                <strong>${safeCmd}</strong> - ${safeDesc}
             </div>
         `;
   });

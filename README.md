@@ -1,8 +1,8 @@
 # @involvex/super-agent-cli
 
-A conversational AI CLI tool powered by Super Agent with intelligent text editor capabilities and tool usage.
+![Super Agent CLI Banner](docs/banner.png)
 
-<img width="980" height="435" alt="Screenshot 2025-07-21 at 13 35 41" src="assets/splash.png" />
+A conversational AI CLI tool powered by Super Agent with intelligent text editor capabilities and tool usage.
 
 ## Features
 

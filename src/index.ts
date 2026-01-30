@@ -402,6 +402,10 @@ program
       // Interactive mode: launch UI
       // Pass apiKey even if undefined, SuperAgent should handle it or fail gracefully later
       const agent = new SuperAgent(apiKey || "", baseURL, model, maxToolRounds);
+
+      // Display ASCII banner
+      const { BANNER } = await import("./utils/banner");
+      console.log(BANNER);
       console.log("🤖 Starting Super Agent CLI Conversational Assistant...\n");
 
       ensureUserSettingsDirectory();
