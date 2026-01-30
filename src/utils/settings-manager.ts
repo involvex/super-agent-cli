@@ -91,6 +91,7 @@ export interface UserSettings {
       prompt: string;
     }>;
   };
+  custom_commands?: Record<string, string>;
   env?: Record<string, string>;
   context?: {
     fileName: string[];

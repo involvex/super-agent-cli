@@ -546,6 +546,10 @@ export function useInputHandler({
     { command: "/chat load <name>", description: "Load a saved chat" },
     { command: "/chat list", description: "List saved chats" },
     { command: "/chat delete <name>", description: "Delete a saved chat" },
+    { command: "/skills", description: "Manage AI skills" },
+    { command: "/agents", description: "Manage AI agents" },
+    { command: "/import", description: "Import from other AI assistants" },
+    { command: "/index", description: "Index current directory" },
     {
       command: "/mcp <action>",
       description: "Manage MCP servers",
@@ -729,15 +733,106 @@ Config Commands:
     }
 
     if (trimmedInput.startsWith("/commands ")) {
-      setChatHistory(prev => [
-        ...prev,
-        {
-          type: "assistant",
-          content:
-            "🚧 Custom commands support implies storing them. Feature placeholder.",
-          timestamp: new Date(),
-        },
-      ]);
+      const args = trimmedInput.split(" ");
+      const action = args[1];
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      const customCommands = settings.custom_commands || {};
+
+      if (action === "add") {
+        const name = args[2];
+        const prompt = args.slice(3).join(" ");
+
+        if (!name || !prompt) {
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: "❌ Usage: /commands add <name> <prompt>",
+              timestamp: new Date(),
+            },
+          ]);
+          clearInput();
+          return true;
+        }
+
+        const newCommands = { ...customCommands, [name]: prompt };
+        manager.updateUserSetting("custom_commands", newCommands);
+
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `✅ Custom command '/${name}' created.`,
+            timestamp: new Date(),
+          },
+        ]);
+      } else if (action === "remove") {
+        const name = args[2];
+
+        if (!name || !customCommands[name]) {
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `❌ Command '/${name}' not found.`,
+              timestamp: new Date(),
+            },
+          ]);
+          clearInput();
+          return true;
+        }
+
+        const newCommands = { ...customCommands };
+        delete newCommands[name];
+        manager.updateUserSetting("custom_commands", newCommands);
+
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `✅ Custom command '/${name}' removed.`,
+            timestamp: new Date(),
+          },
+        ]);
+      } else if (action === "list") {
+        const commandList = Object.keys(customCommands);
+
+        if (commandList.length === 0) {
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content:
+                "No custom commands defined. Use /commands add to create one.",
+              timestamp: new Date(),
+            },
+          ]);
+        } else {
+          const list = commandList
+            .map(name => `  /${name} - ${customCommands[name]}`)
+            .join("\n");
+
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `Custom Commands:\n${list}`,
+              timestamp: new Date(),
+            },
+          ]);
+        }
+      } else {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: "❌ Usage: /commands <add|remove|list> [name] [prompt]",
+            timestamp: new Date(),
+          },
+        ]);
+      }
+
       clearInput();
       return true;
     }
@@ -1746,6 +1841,24 @@ Respond with ONLY the commit message, no additional text.`;
           }
         } catch (e) {
           // Skip if file not found
+        }
+      }
+    }
+
+    // Check if input matches a custom command
+    if (userInput.startsWith("/")) {
+      const commandName = userInput.split(" ")[0].slice(1);
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      const customCommands = settings.custom_commands || {};
+
+      if (customCommands[commandName]) {
+        // Replace the command with its prompt
+        const args = userInput.split(" ").slice(1);
+        resolvedInput = customCommands[commandName];
+        // If there are arguments, append them to the custom prompt
+        if (args.length > 0) {
+          resolvedInput += " " + args.join(" ");
         }
       }
     }
