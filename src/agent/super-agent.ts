@@ -2,6 +2,7 @@ import {
   BashTool,
   ConfirmationTool,
   MorphEditorTool,
+  ProjectMapTool,
   SearchTool,
   TextEditorTool,
   TodoTool,
@@ -16,6 +17,7 @@ import { createTokenCounter, TokenCounter } from "../utils/token-counter";
 import { loadCustomInstructions } from "../utils/custom-instructions";
 import { getSettingsManager } from "../utils/settings-manager";
 import { OpenAIProvider } from "../core/providers/openai";
+import { GeminiProvider } from "../core/providers/gemini";
 import { GrokProvider } from "../core/providers/grok";
 import { loadMCPConfig } from "../mcp/config";
 import { ToolResult } from "../types";
@@ -48,6 +50,7 @@ export class SuperAgent extends EventEmitter {
   private todoTool: TodoTool;
   private confirmationTool: ConfirmationTool;
   private search: SearchTool;
+  private projectMap: ProjectMapTool;
   private chatHistory: ChatEntry[] = [];
   private messages: LLMMessage[] = [];
   private tokenCounter: TokenCounter;
@@ -65,7 +68,13 @@ export class SuperAgent extends EventEmitter {
     const manager = getSettingsManager();
     const settings = manager.loadUserSettings();
     const savedModel = manager.getCurrentModel();
-    const activeProvider = settings.active_provider;
+    // Normalize provider name
+    let activeProvider = (settings.active_provider || "grok").toLowerCase();
+
+    // Alias zai -> grok if needed, though we can just treat them as grok internally
+    if (activeProvider === "zai") {
+      activeProvider = "grok";
+    }
 
     const modelToUse = model || savedModel || "grok-code-fast-1";
     this.maxToolRounds = maxToolRounds || 400;
@@ -73,8 +82,10 @@ export class SuperAgent extends EventEmitter {
     // Instantiate appropriate provider
     if (activeProvider === "openai") {
       this.superAgentClient = new OpenAIProvider(apiKey, baseURL, modelToUse);
+    } else if (activeProvider === "gemini" || activeProvider === "google") {
+      this.superAgentClient = new GeminiProvider(apiKey, baseURL, modelToUse);
     } else {
-      // Default to grok
+      // Default to grok (handles "grok", "zai", and unknowns)
       this.superAgentClient = new GrokProvider(apiKey, baseURL, modelToUse);
     }
 
@@ -84,6 +95,7 @@ export class SuperAgent extends EventEmitter {
     this.todoTool = new TodoTool();
     this.confirmationTool = new ConfirmationTool();
     this.search = new SearchTool();
+    this.projectMap = new ProjectMapTool();
     this.tokenCounter = createTokenCounter(modelToUse);
 
     // Initialize MCP servers if configured
@@ -215,6 +227,30 @@ Current working directory: ${process.cwd()}`,
     return false;
   }
 
+  private pruneMessages(maxTokens: number = 100000): void {
+    const systemMessage = this.messages[0];
+    if (systemMessage.role !== "system") {
+      return;
+    }
+
+    let currentTokens = this.tokenCounter.countMessageTokens(
+      this.messages as any,
+    );
+    if (currentTokens <= maxTokens) {
+      return;
+    }
+
+    // Keep removing messages from the beginning (after system message) until we are under the limit
+    // We should be careful not to remove a tool call without its result or vice versa,
+    // but a simple sliding window is a good start.
+    while (this.messages.length > 2 && currentTokens > maxTokens) {
+      this.messages.splice(1, 1);
+      currentTokens = this.tokenCounter.countMessageTokens(
+        this.messages as any,
+      );
+    }
+  }
+
   async processUserMessage(message: string): Promise<ChatEntry[]> {
     // Add user message to conversation
     const userEntry: ChatEntry = {
@@ -224,6 +260,11 @@ Current working directory: ${process.cwd()}`,
     };
     this.chatHistory.push(userEntry);
     this.messages.push({ role: "user", content: message });
+
+    // Prune context before sending
+    const maxContextTokens =
+      Number(process.env.SUPER_AGENT_MAX_CONTEXT_TOKENS) || 100000;
+    this.pruneMessages(maxContextTokens);
 
     const newEntries: ChatEntry[] = [userEntry];
     const maxToolRounds = this.maxToolRounds;
@@ -422,6 +463,11 @@ Current working directory: ${process.cwd()}`,
     };
     this.chatHistory.push(userEntry);
     this.messages.push({ role: "user", content: message });
+
+    // Prune context before sending
+    const maxContextTokens =
+      Number(process.env.SUPER_AGENT_MAX_CONTEXT_TOKENS) || 100000;
+    this.pruneMessages(maxContextTokens);
 
     // Calculate input tokens
     let inputTokens = this.tokenCounter.countMessageTokens(
@@ -708,6 +754,9 @@ Current working directory: ${process.cwd()}`,
             fileTypes: args.file_types,
             includeHidden: args.include_hidden,
           });
+
+        case "project_map":
+          return await this.projectMap.getProjectMap(args.max_depth);
 
         default:
           // Check if this is an MCP tool

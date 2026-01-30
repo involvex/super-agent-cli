@@ -73,10 +73,26 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
     zai: {
       id: "zai",
       provider: "zai",
-      model: "GLM-4.7",
+      model: "grok-code-fast-1",
       api_key: "",
-      base_url: "https://api.z.ai/api/v1",
-      default_model: "GLM-4.7",
+      base_url: "https://api.x.ai/v1",
+      default_model: "grok-code-fast-1",
+    },
+    openai: {
+      id: "openai",
+      provider: "openai",
+      model: "gpt-4o",
+      api_key: "",
+      base_url: "https://api.openai.com/v1",
+      default_model: "gpt-4o",
+    },
+    gemini: {
+      id: "gemini",
+      provider: "gemini",
+      model: "gemini-3-pro-preview",
+      api_key: "",
+      base_url: "https://generativelanguage.googleapis.com/v1beta/openai",
+      default_model: "gemini-3-pro-preview",
     },
   },
   ui: {
@@ -246,6 +262,13 @@ export class SettingsManager {
       "grok-2-vision-1212",
       "grok-2-1212",
       "grok-code-fast-1",
+      "gpt-4o",
+      "gpt-4o-mini",
+      "o1-preview",
+      "o1-mini",
+      "gemini-3-pro-preview",
+      "gemini-2.5-pro",
+      "gemini-2.5-flash",
       "GLM-4.7",
     ];
   }

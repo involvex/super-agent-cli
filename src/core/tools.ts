@@ -242,6 +242,24 @@ const BASE_SUPER_AGENT_TOOLS: SuperAgentTool[] = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "project_map",
+      description:
+        "Get an overview of the project structure and important files",
+      parameters: {
+        type: "object",
+        properties: {
+          max_depth: {
+            type: "number",
+            description: "Maximum directory depth to explore (default: 2)",
+          },
+        },
+        required: [],
+      },
+    },
+  },
 ];
 
 // Morph Fast Apply tool (conditional)
