@@ -1,3 +1,9 @@
+## [0.0.66](https://github.com/involvex/super-agent-cli/compare/v0.0.65...v0.0.66) (2026-01-30)
+
+### Features
+
+- **commands:** add custom slash commands with add/remove/list support ([6fe05af](https://github.com/involvex/super-agent-cli/commit/6fe05aff4fcb056bc6915376239d149128358dff))
+
 ## [0.0.65](https://github.com/involvex/super-agent-cli/compare/v0.0.64...v0.0.65) (2026-01-30)
 
 ### Features
