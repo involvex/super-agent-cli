@@ -110,14 +110,16 @@ function ChatInterfaceWithAgent({
     });
 
     // Add horizontal margin (2 spaces) to match Ink paddingX={2}
-    const logoLines = (logoOutput as any).string.split("\n");
-    logoLines.forEach((line: string) => {
-      if (line.trim()) {
-        console.log(" " + line); // Add 2 spaces for horizontal margin
-      } else {
-        console.log(line); // Keep empty lines as-is
-      }
-    });
+    // const logoLines = (
+    //   logoOutput as unknown as { string: string }
+    // ).string.split("\n");
+    // logoLines.forEach((line: string) => {
+    //   if (line.trim()) {
+    //     console.log(" " + line); // Add 2 spaces for horizontal margin
+    //   } else {
+    //     console.log(line); // Keep empty lines as-is
+    //   }
+    // });
 
     console.log(" "); // Spacing after logo
 

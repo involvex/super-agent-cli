@@ -1,0 +1,43 @@
+
+[build]
+# Build output directory
+outdir = "dist"
+entrypoints = ["src/index.ts"]
+
+preload = ["src/index.ts"]
+import = ["src/index.ts"] 
+require = ["src/index.ts"]
+external = ["react-devtools-core"]
+Includes = ["src/**", "node_modules/**"]
+
+format = "esm"
+packages = "auto"
+# Minification
+#minify = true
+
+# Source maps
+sourcemap = true
+
+# Target environment
+target = "node"
+
+
+[run]
+# Node.js compatibility mode
+compat = "node"
+
+# Loader configuration for file types
+loader = {
+  ".css" = "css",
+  ".js" = "jsx", 
+  ".ts" = "tsx",
+  ".tsx" = "tsx",
+  ".json" = "json",
+  ".txt" = "text"
+}
+
+# Environment variables
+
+env = {
+  NODE_ENV = "production"
+}
