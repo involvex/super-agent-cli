@@ -534,37 +534,56 @@ export function useInputHandler({
     handleInputChange(input);
   }, [input]);
 
-  const commandSuggestions: CommandSuggestion[] = [
-    { command: "/help", description: "Show help information" },
-    { command: "/clear", description: "Clear chat history" },
-    { command: "/doctor", description: "Check status & connection" },
-    { command: "/models", description: "Switch Super Agent Model" },
-    { command: "/config", description: "View or edit configuration" },
-    { command: "/commands", description: "Manage custom commands" },
-    { command: "/provider", description: "Manage AI providers" },
-    { command: "/chat save <name>", description: "Save current chat" },
-    { command: "/chat load <name>", description: "Load a saved chat" },
-    { command: "/chat list", description: "List saved chats" },
-    { command: "/chat delete <name>", description: "Delete a saved chat" },
-    { command: "/skills", description: "Manage AI skills" },
-    { command: "/agents", description: "Manage AI agents" },
-    { command: "/import", description: "Import from other AI assistants" },
-    { command: "/index", description: "Index current directory" },
-    {
-      command: "/mcp <action>",
-      description: "Manage MCP servers",
-    },
-    {
-      command: "/plugin <action>",
-      description: "Manage plugins (list, install, remove)",
-    },
-    { command: "/commit-and-push", description: "AI commit & push to remote" },
-    {
-      command: "/import <type> <source>",
-      description: "Import resources (agents, skills, hooks)",
-    },
-    { command: "/exit", description: "Exit the application" },
-  ];
+  const commandSuggestions: CommandSuggestion[] = useMemo(() => {
+    const baseCommands: CommandSuggestion[] = [
+      { command: "/help", description: "Show help information" },
+      { command: "/clear", description: "Clear chat history" },
+      { command: "/doctor", description: "Check status & connection" },
+      { command: "/models", description: "Switch Super Agent Model" },
+      { command: "/config", description: "View or edit configuration" },
+      { command: "/commands", description: "Manage custom commands" },
+      { command: "/provider", description: "Manage AI providers" },
+      { command: "/chat save <name>", description: "Save current chat" },
+      { command: "/chat load <name>", description: "Load a saved chat" },
+      { command: "/chat list", description: "List saved chats" },
+      { command: "/chat delete <name>", description: "Delete a saved chat" },
+      { command: "/skills", description: "Manage AI skills" },
+      { command: "/agents", description: "Manage AI agents" },
+      { command: "/import", description: "Import from other AI assistants" },
+      { command: "/index", description: "Index current directory" },
+      {
+        command: "/mcp <action>",
+        description: "Manage MCP servers",
+      },
+      {
+        command: "/plugin <action>",
+        description: "Manage plugins (list, install, remove)",
+      },
+      {
+        command: "/commit-and-push",
+        description: "AI commit & push to remote",
+      },
+      {
+        command: "/import <type> <source>",
+        description: "Import resources (agents, skills, hooks)",
+      },
+      { command: "/exit", description: "Exit the application" },
+    ];
+
+    // Add custom commands from settings
+    const manager = getSettingsManager();
+    const settings = manager.loadUserSettings();
+    const customCommands = settings.custom_commands || {};
+
+    const customSuggestions: CommandSuggestion[] = Object.keys(
+      customCommands,
+    ).map(name => ({
+      command: `/${name}`,
+      description: customCommands[name],
+    }));
+
+    return [...baseCommands, ...customSuggestions];
+  }, []);
 
   const [activeProvider, setActiveProvider] = useState(() => {
     return getSettingsManager().loadUserSettings().active_provider;
