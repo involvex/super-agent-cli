@@ -57,10 +57,7 @@ const getWeatherTool: SuperAgentTool = {
           if (response.status === 404) {
             return `Error: City "${args.city}" not found. Please check the spelling.`;
           }
-          if (response.status === 401) {
-            return "Error: Invalid API key. Please check your OpenWeatherMap API key.";
-          }
-          return `Error: Weather API returned status ${response.status}`;
+          return `Error: API request failed with status ${response.status}`;
         }
 
         const data = (await response.json()) as any;

@@ -1,7 +1,7 @@
 import { getSettingsManager } from "../utils/settings-manager";
 import { SuperAgent } from "../agent/super-agent";
-import { SuperAgentTool } from "../core/client";
 import { SuperAgentPlugin } from "./types";
+import { SuperAgentTool } from "../types";
 import { exec } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs-extra";

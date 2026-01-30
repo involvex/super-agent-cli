@@ -32,3 +32,17 @@ export interface ConfirmationState {
   skipThisSession: boolean;
   pendingOperation: boolean;
 }
+
+export interface SuperAgentTool {
+  type: "function";
+  function: {
+    name: string;
+    description: string;
+    parameters: {
+      type: "object";
+      properties: Record<string, any>;
+      required: string[];
+    };
+  };
+  executor?: (args: any) => Promise<any>;
+}

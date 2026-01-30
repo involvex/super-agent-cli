@@ -1,5 +1,5 @@
 import { SuperAgent } from "../agent/super-agent";
-import { SuperAgentTool } from "../core/client";
+import { SuperAgentTool } from "../types";
 
 export interface PluginContext {
   agent: SuperAgent;

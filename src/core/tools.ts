@@ -1,6 +1,6 @@
 import { MCPManager, MCPTool } from "../mcp/client";
 import { loadMCPConfig } from "../mcp/config";
-import { SuperAgentTool } from "./client";
+import { SuperAgentTool } from "../types";
 
 const BASE_SUPER_AGENT_TOOLS: SuperAgentTool[] = [
   {
@@ -82,7 +82,6 @@ const BASE_SUPER_AGENT_TOOLS: SuperAgentTool[] = [
       },
     },
   },
-
   {
     type: "function",
     function: {
@@ -426,3 +425,5 @@ export async function getAllSuperAgentTools(): Promise<SuperAgentTool[]> {
   tools = addPluginToolsToSuperAgentTools(tools);
   return tools;
 }
+
+// Remove the redundant and malformed SuperAgentTools array at the end
