@@ -1,3 +1,9 @@
+## [0.0.59](https://github.com/involvex/super-agent-cli/compare/v0.0.58...v0.0.59) (2026-01-30)
+
+### Features
+
+- **plugins:** enhance plugin installation to support GitHub repos and local directories ([a4b448a](https://github.com/involvex/super-agent-cli/commit/a4b448a7571d9392683b836648178241acf7a51f))
+
 ## [0.0.58](https://github.com/involvex/super-agent-cli/compare/v0.0.57...v0.0.58) (2026-01-30)
 
 ### Features
