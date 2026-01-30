@@ -1,3 +1,9 @@
+## [0.0.44](https://github.com/involvex/super-agent-cli/compare/v0.0.43...v0.0.44) (2026-01-30)
+
+### Features
+
+- **ui:** add provider selection and configuration viewer components ([6eca4ce](https://github.com/involvex/super-agent-cli/commit/6eca4cef5b5438d4900b6ebe95c9f50c36db711e))
+
 ## [0.0.43](https://github.com/involvex/super-agent-cli/compare/v0.0.42...v0.0.43) (2026-01-30)
 
 ## [0.0.42](https://github.com/involvex/super-agent-cli/compare/v0.0.41...v0.0.42) (2026-01-30)
