@@ -192,6 +192,14 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
         "https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/ai/v1",
       default_model: "@cf/meta/llama-3.1-70b-instruct",
     },
+    zai: {
+      id: "zai",
+      provider: "zai",
+      model: "glm-4.7",
+      api_key: "",
+      base_url: "https://api.z.ai/api/coding/paas/v4/",
+      default_model: "glm-4.7",
+    },
   },
   ui: {
     theme: "dark",
