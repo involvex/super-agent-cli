@@ -56,6 +56,7 @@ export interface ProviderConfig {
   api_key: string;
   base_url?: string;
   default_model?: string;
+  account_id?: string;
 }
 
 export interface UserSettings {

@@ -84,9 +84,22 @@ export class SuperAgent extends EventEmitter {
     // Command line args (constructor params) override settings
     const effectiveApiKey = apiKey || providerConfig?.api_key || "";
     // Ensure baseURL is undefined if empty string to let SDKs use defaults
-    const effectiveBaseURL =
+    let effectiveBaseURL =
       baseURL ||
       (providerConfig?.base_url ? providerConfig.base_url : undefined);
+
+    // Cloudflare Workers AI specific handling
+    if (
+      providerConfig?.provider === "workers-ai" &&
+      effectiveBaseURL?.includes("{ACCOUNT_ID}")
+    ) {
+      if (providerConfig.account_id) {
+        effectiveBaseURL = effectiveBaseURL.replace(
+          "{ACCOUNT_ID}",
+          providerConfig.account_id,
+        );
+      }
+    }
     const effectiveModel =
       model ||
       providerConfig?.model ||
@@ -240,7 +253,21 @@ Current working directory: ${process.cwd()}`,
 
     const providerType = providerConfig.provider || activeProviderId;
     const effectiveApiKey = providerConfig.api_key || "";
-    const effectiveBaseURL = providerConfig.base_url || undefined;
+    let effectiveBaseURL = providerConfig.base_url || undefined;
+
+    // Cloudflare Workers AI specific handling
+    if (
+      providerConfig.provider === "workers-ai" &&
+      effectiveBaseURL?.includes("{ACCOUNT_ID}")
+    ) {
+      if (providerConfig.account_id) {
+        effectiveBaseURL = effectiveBaseURL.replace(
+          "{ACCOUNT_ID}",
+          providerConfig.account_id,
+        );
+      }
+    }
+
     const effectiveModel =
       providerConfig.model ||
       providerConfig.default_model ||
@@ -276,6 +303,13 @@ Current working directory: ${process.cwd()}`,
 
     // Update token counter with new model
     this.tokenCounter = createTokenCounter(effectiveModel);
+  }
+
+  public async listModels(): Promise<string[]> {
+    if (this.superAgentClient.listModels) {
+      return this.superAgentClient.listModels();
+    }
+    return [];
   }
 
   private async initializeMCP(): Promise<void> {

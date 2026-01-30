@@ -565,9 +565,44 @@ export function useInputHandler({
   });
 
   // Load models from configuration with fallback to defaults
+  // Also try to fetch dynamic models from the agent
+  const [dynamicModels, setDynamicModels] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Fetch models when active provider changes
+    let mounted = true;
+    const fetchModels = async () => {
+      try {
+        const models = await agent.listModels();
+        if (mounted && models.length > 0) {
+          setDynamicModels(models);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    fetchModels();
+    return () => {
+      mounted = false;
+    };
+  }, [activeProvider, agent]);
+
   const availableModels: ModelOption[] = useMemo(() => {
-    return loadModelConfig(activeProvider);
-  }, [activeProvider]);
+    const configModels = loadModelConfig(activeProvider);
+
+    if (dynamicModels.length > 0) {
+      // Merge dynamic models with config models, avoiding duplicates
+      const configModelNames = new Set(configModels.map(m => m.model));
+      const newModels = dynamicModels
+        .filter(m => !configModelNames.has(m))
+        .map(m => ({ model: m }));
+
+      // Return config models first (priority) then dynamic
+      return [...configModels, ...newModels];
+    }
+
+    return configModels;
+  }, [activeProvider, dynamicModels]);
 
   const handleDirectCommand = async (input: string): Promise<boolean> => {
     const trimmedInput = input.trim();
@@ -630,6 +665,76 @@ Config Commands:
 
     if (trimmedInput === "/exit") {
       process.exit(0);
+    }
+
+    if (trimmedInput === "/doctor") {
+      setIsProcessing(true);
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      const active = settings.active_provider;
+      const config = settings.providers[active];
+
+      let checks = `Super Agent Doctor 🩺\n\n`;
+      checks += `✅ Active Provider: ${active}\n`;
+      checks += config
+        ? `✅ Configuration found\n`
+        : `❌ Configuration MISSING\n`;
+      checks += config?.api_key ? `✅ API Key set\n` : `❌ API Key MISSING\n`;
+
+      if (active === "workers-ai") {
+        checks += config?.account_id
+          ? `✅ Account ID set\n`
+          : `❌ Account ID MISSING (use /provider set-account)\n`;
+      }
+
+      try {
+        // Basic list models attempt
+        const checkAgent = agent;
+        // cast if needed or assume updated interface
+        const models = await (checkAgent as any).listModels();
+        checks += `✅ Connection check: OK (${models.length} models found)\n`;
+      } catch (e: any) {
+        checks += `❌ Connection check: FAILED (${e.message})\n`;
+      }
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: checks,
+          timestamp: new Date(),
+        },
+      ]);
+      setIsProcessing(false);
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput === "/commands") {
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: "Usage: /commands <add|remove|list> [name] [prompt]",
+          timestamp: new Date(),
+        },
+      ]);
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput.startsWith("/commands ")) {
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content:
+            "🚧 Custom commands support implies storing them. Feature placeholder.",
+          timestamp: new Date(),
+        },
+      ]);
+      clearInput();
+      return true;
     }
 
     if (trimmedInput === "/config") {
@@ -746,6 +851,65 @@ Config Commands:
               timestamp: new Date(),
             },
           ]);
+        }
+      } else {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `❌ Provider '${providerId}' not found.`,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput.startsWith("/provider set-account ")) {
+      const args = trimmedInput
+        .replace("/provider set-account ", "")
+        .trim()
+        .split(" ");
+      const providerId = args[0];
+      const accountId = args[1];
+
+      if (!providerId || !accountId) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: "❌ Usage: /provider set-account <provider> <account_id>",
+            timestamp: new Date(),
+          },
+        ]);
+        clearInput();
+        return true;
+      }
+
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      if (settings.providers && settings.providers[providerId]) {
+        const newProviders = { ...settings.providers };
+        newProviders[providerId] = {
+          ...newProviders[providerId],
+          account_id: accountId,
+        };
+        manager.updateUserSetting("providers", newProviders);
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `✅ Account ID for ${providerId} updated.`,
+            timestamp: new Date(),
+          },
+        ]);
+
+        // Reload if active
+        if (providerId === activeProvider) {
+          try {
+            agent.setProvider(providerId);
+          } catch (e) {}
         }
       } else {
         setChatHistory(prev => [

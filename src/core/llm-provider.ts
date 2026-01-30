@@ -75,4 +75,9 @@ export interface LLMProvider {
     messages: LLMMessage[],
     options?: LLMRequestOptions,
   ): AsyncGenerator<any, void, unknown>;
+
+  /**
+   * List available models from the provider
+   */
+  listModels(): Promise<string[]>;
 }

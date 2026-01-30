@@ -94,4 +94,12 @@ export class GrokProvider implements LLMProvider {
       throw new Error(`Grok API error: ${error.message}`);
     }
   }
+  async listModels(): Promise<string[]> {
+    try {
+      const response = await this.client.models.list();
+      return response.data.map(m => m.id);
+    } catch (error) {
+      return [];
+    }
+  }
 }

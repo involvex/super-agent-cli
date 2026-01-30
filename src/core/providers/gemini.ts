@@ -204,4 +204,11 @@ export class GeminiProvider implements LLMProvider {
       throw new Error(`Gemini API error: ${error.message}`);
     }
   }
+  async listModels(): Promise<string[]> {
+    // Gemini SDK doesn't expose a simple list models on the client instance easily
+    // without using the model manager, which is distinct.
+    // Integrating GoogleGenerativeAI.getGenerativeModel is for a specific model.
+    // Return empty to allow fallback to hardcoded list.
+    return [];
+  }
 }

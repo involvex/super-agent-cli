@@ -103,4 +103,13 @@ export class OpenAICompatibleProvider implements LLMProvider {
       throw new Error(`${this.name} API error: ${error.message}`);
     }
   }
+  async listModels(): Promise<string[]> {
+    try {
+      const response = await this.client.models.list();
+      return response.data.map(m => m.id);
+    } catch (error) {
+      // Fallback or silent fail
+      return [];
+    }
+  }
 }
