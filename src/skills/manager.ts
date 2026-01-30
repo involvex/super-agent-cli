@@ -134,4 +134,12 @@ export class SkillsManager {
       );
     }
   }
+  async saveSkill(name: string, content: string): Promise<void> {
+    await this.ensureSkillsDirectory();
+    const filePath = path.join(
+      this.skillsPath,
+      name.endsWith(".ts") ? name : `${name}.ts`,
+    );
+    await fs.writeFile(filePath, content);
+  }
 }

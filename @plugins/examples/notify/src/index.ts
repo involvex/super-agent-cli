@@ -48,41 +48,62 @@ const sendNotificationTool: SuperAgentTool = {
         }
 
         const urgency = args.urgency || config.urgency || "normal";
+        const { execFile } = await import("child_process");
+        const { promisify } = await import("util");
+        const execFileAsync = promisify(execFile);
 
         // Platform-specific notification logic
         if (process.platform === "darwin") {
           // macOS: Use osascript
-          const { exec } = await import("child_process");
-          const { promisify } = await import("util");
-          const execAsync = promisify(exec);
+          // Escape for AppleScript string: " -> \" and \ -> \\
+          const safeMessage = args.message
+            .replace(/\\/g, "\\\\")
+            .replace(/"/g, '\\"');
+          const safeTitle = args.title
+            .replace(/\\/g, "\\\\")
+            .replace(/"/g, '\\"');
 
-          const script = `display notification "${args.message.replace(/"/g, '\\"')}" with title "${args.title.replace(/'/g, "''")}"`;
-          await execAsync(`osascript -e '${script}'`);
+          const script = `display notification "${safeMessage}" with title "${safeTitle}"`;
+
+          // Use execFile to avoid shell injection
+          await execFileAsync("osascript", ["-e", script]);
 
           return `Notification sent: "${args.title}"`;
         } else if (process.platform === "win32") {
           // Windows: Use PowerShell
-          const { exec } = await import("child_process");
-          const { promisify } = await import("util");
-          const execAsync = promisify(exec);
+          // Escape for PowerShell string: " -> `" and ` -> ``
+          // Note: PowerShell uses backtick ` as escape char
+          const safeMessage = args.message
+            .replace(/`/g, "``")
+            .replace(/"/g, '`"');
+          const safeTitle = args.title.replace(/`/g, "``").replace(/"/g, '`"');
 
           const ps1 = `
 $notify = New-Object -ComObject Wscript.Shell
-$notify.Popup("${args.message.replace(/"/g, '`"')}", 5, "${args.title.replace(/"/g, '`"')}", 64)
+$notify.Popup("${safeMessage}", 5, "${safeTitle}", 64)
           `.trim();
 
-          await execAsync(`powershell -Command "${ps1}"`);
+          // Pass command as encoded block or just args?
+          // Safest is -Command "..." but proper quoting is hard.
+          // Better: -EncodedCommand but that requires base64.
+          // Let's use execFile with -Command and careful construction,
+          // but actually execFile on Windows still has some shell-like behavior with .cmd/.bat.
+          // For powershell.exe, arguments are parsed.
+
+          await execFileAsync("powershell", ["-Command", ps1]);
           return `Notification sent: "${args.title}"`;
         } else {
           // Linux: Use notify-send
-          const { exec } = await import("child_process");
-          const { promisify } = await import("util");
-          const execAsync = promisify(exec);
+          const urgencyFlag = urgency; // low, normal, critical maps directly usually
 
-          const urgencyFlag = `-u ${urgency}`;
-          await execAsync(
-            `notify-send ${urgencyFlag} "${args.title}" "${args.message}"`,
-          );
+          // execFile automatically handles argument quoting for the process
+          await execFileAsync("notify-send", [
+            "-u",
+            urgencyFlag,
+            args.title,
+            args.message,
+          ]);
+
           return `Notification sent: "${args.title}"`;
         }
       } catch (error: any) {

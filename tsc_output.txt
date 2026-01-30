@@ -1,2 +1,0 @@
-src/agents/manager.ts(22,28): error TS2339: Property 'getSettingsDir' does not exist on type 'SettingsManager'.
-src/skills/manager.ts(19,28): error TS2339: Property 'getSettingsDir' does not exist on type 'SettingsManager'.

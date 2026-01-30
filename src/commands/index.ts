@@ -1,7 +1,9 @@
 import { createServeCommand, createWebCommand } from "./web";
+import { createProviderCommand } from "./provider";
 import { createIndexCommand } from "./index-cmd";
 import { createPluginsCommand } from "./plugins";
 import { createSkillsCommand } from "./skills";
+import { createImportCommand } from "./import";
 import { createAgentsCommand } from "./agents";
 import { createMCPCommand } from "./mcp";
 import { createGitCommand } from "./git";
@@ -16,5 +18,7 @@ export function registerCommands(program: Command) {
   program.addCommand(createServeCommand());
   program.addCommand(createSkillsCommand());
   program.addCommand(createAgentsCommand());
+  program.addCommand(createImportCommand());
+  program.addCommand(createProviderCommand());
   program.addCommand(createIndexCommand());
 }

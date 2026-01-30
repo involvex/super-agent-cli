@@ -5,7 +5,10 @@
   "keywords": [
     "cli",
     "agent",
-    "text-editor",
+    "cli-agent",
+    "ai-cli",
+    "coding-cli",
+    "ai-coding-cli",
     "ai"
   ],
   "homepage": "https://involvex.github.io/super-agent-cli/",

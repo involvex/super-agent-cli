@@ -8,7 +8,7 @@ import * as fs from "fs";
 const SETTINGS_VERSION = 2;
 
 // Models mapping per provider
-const PROVIDER_MODELS: Record<string, string[]> = {
+export const PROVIDER_MODELS: Record<string, string[]> = {
   grok: [
     "grok-beta",
     "grok-vision-beta",
@@ -248,7 +248,23 @@ export class SettingsManager {
       }
       const content = fs.readFileSync(this.userSettingsPath, "utf-8");
       const settings = JSON.parse(content);
-      return { ...DEFAULT_USER_SETTINGS, ...settings };
+
+      // Deep merge providers to ensure defaults are preserved
+      const mergedProviders = { ...DEFAULT_USER_SETTINGS.providers };
+      if (settings.providers) {
+        for (const [key, value] of Object.entries(settings.providers)) {
+          mergedProviders[key] = {
+            ...(mergedProviders[key] || {}),
+            ...(value as any),
+          };
+        }
+      }
+
+      return {
+        ...DEFAULT_USER_SETTINGS,
+        ...settings,
+        providers: mergedProviders,
+      };
     } catch (error) {
       console.warn("Failed to load user settings:", error);
       return { ...DEFAULT_USER_SETTINGS };
@@ -371,6 +387,16 @@ export class SettingsManager {
 
     if (models) {
       return models;
+    }
+
+    // If provider is active but not in PROVIDER_MODELS (e.g. custom/new provider like 'zai')
+    // We should probably return a generic list or allow freeform.
+    // For now, return empty array to trigger "Custom..." or just fallback
+    if (
+      activeProvider &&
+      this.getEffectiveSettings().providers[activeProvider]
+    ) {
+      return [];
     }
 
     // Fallback default list if provider unknown

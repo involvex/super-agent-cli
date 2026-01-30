@@ -1,5 +1,24 @@
 import * as fs from "fs-extra";
 import * as path from "path";
+import * as os from "os";
+
+export function expandHome(filepath: string): string {
+  if (filepath.startsWith("~")) {
+    return path.join(os.homedir(), filepath.slice(1));
+  }
+  return filepath;
+}
+
+export function resolveSourcePath(source: string): string {
+  const defaults: Record<string, string> = {
+    gemini: "~/.gemini",
+    claude: "~/.claude",
+    kilo: "~/.kilocode",
+  };
+
+  const rawPath = defaults[source.toLowerCase()] || source;
+  return expandHome(rawPath);
+}
 
 export interface FileEntry {
   name: string;

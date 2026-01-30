@@ -26,9 +26,9 @@ export function getCurrentModel(): string {
  * Load model configuration
  * Priority: user-settings.json models > default hardcoded
  */
-export function loadModelConfig(): ModelOption[] {
+export function loadModelConfig(providerId?: string): ModelOption[] {
   const manager = getSettingsManager();
-  const models = manager.getAvailableModels();
+  const models = manager.getAvailableModels(providerId);
 
   return models.map(model => ({
     model: model.trim(),

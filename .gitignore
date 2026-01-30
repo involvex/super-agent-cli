@@ -110,3 +110,4 @@ temp/
 @plugins/.super-agent
 @plugins/.env
 @plugins/.env.local
+tsc_output.txt

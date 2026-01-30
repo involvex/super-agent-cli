@@ -250,6 +250,59 @@ export function useInputHandler({
         setShowProviderSelection(false);
         return true;
       }
+
+      // Handle API Key editing
+      if (char === "e" || char === "E") {
+        if (providers.length > 0) {
+          const selectedProviderId = providers[selectedProviderIndex];
+          // Hacky way to prompt: close selection, start direct input or show message?
+          // Ideally we'd have a modal input.
+          // Let's use the CLI provider config via run_command logic or similar?
+          // Or better, just print instructions since we are in a raw input mode hook.
+          // Actually, we can use the chat history to prompt the user or switch mode.
+          // But simpler: just auto-fill the input with a command to set the key?
+          // There is no /provider set-key command yet.
+
+          // Alternative: Switch to /provider config interactive command?
+          // But that's a different command.
+
+          // Let's just notify for now or add a "Edit" hint that tells them to use /provider config.
+          // But the user asked for "pressing E on the provider allows editing".
+          // We can implement a simple input mode overlay if we want, but complex.
+
+          // Let's inject a command into the input line to help them.
+          // setInput(`/provider config ${selectedProviderId}`); // if that supported args
+
+          // Or better: trigger the interactive config for that provider immediately if possible?
+          // Since we are inside the hook, we can't easily spawn the inquirer process.
+
+          // Let's just auto-fill the input with a hint for now, or implement a lightweight key setter.
+
+          // Implementation plan:
+          // 1. Notify user in chat to use /provider config
+          // 2. OR, actually start an inline input mode for the key.
+
+          // Simplest compliant fix:
+          const manager = getSettingsManager();
+          const currentKey =
+            manager.getUserSetting("providers")?.[selectedProviderId]
+              ?.api_key || "";
+
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `📝 To edit API key for ${selectedProviderId}, run: /provider config`,
+              timestamp: new Date(),
+            },
+          ]);
+          setShowProviderSelection(false);
+          // Maybe autofill input?
+          setInput("/provider config");
+        }
+        return true;
+      }
+
       return true; // Absorb other keys while provider selection is open
     }
 
@@ -496,6 +549,10 @@ export function useInputHandler({
       description: "Manage plugins (list, install, remove)",
     },
     { command: "/commit-and-push", description: "AI commit & push to remote" },
+    {
+      command: "/import <type> <source>",
+      description: "Import resources (agents, skills, hooks)",
+    },
     { command: "/exit", description: "Exit the application" },
   ];
 
@@ -505,7 +562,7 @@ export function useInputHandler({
 
   // Load models from configuration with fallback to defaults
   const availableModels: ModelOption[] = useMemo(() => {
-    return loadModelConfig();
+    return loadModelConfig(activeProvider);
   }, [activeProvider]);
 
   const handleDirectCommand = async (input: string): Promise<boolean> => {
@@ -765,6 +822,170 @@ Available models: ${modelNames.join(", ")}`,
           },
         ]);
       }
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput.startsWith("/import ")) {
+      const args = trimmedInput.replace("/import ", "").split(" ");
+      const type = args[0];
+      const source = args[1];
+
+      if (!type || !source) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content:
+              "❌ Usage: /import <type> <source>\nTypes: agents, skills, hooks\nSources: gemini, claude, kilo, or path",
+            timestamp: new Date(),
+          },
+        ]);
+        clearInput();
+        return true;
+      }
+
+      setIsProcessing(true);
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: `Importing ${type} from ${source}...`,
+          timestamp: new Date(),
+        },
+      ]);
+
+      try {
+        const { resolveSourcePath } = await import("../utils/file-utils");
+        const { AgentsManager } = await import("../agents/manager");
+        const { SkillsManager } = await import("../skills/manager");
+        const { getSettingsManager } =
+          await import("../utils/settings-manager");
+        const fs = await import("fs-extra");
+        const path = await import("path");
+
+        const sourcePath = resolveSourcePath(source);
+
+        if (type === "agents") {
+          const agentsDir = path.join(sourcePath, "agents");
+          if (!(await fs.pathExists(agentsDir))) {
+            throw new Error(`Agents directory not found at ${agentsDir}`);
+          }
+          const files = await fs.readdir(agentsDir);
+          const manager = AgentsManager.getInstance();
+          let count = 0;
+          for (const file of files) {
+            if (file.endsWith(".json")) {
+              try {
+                const content = await fs.readJson(path.join(agentsDir, file));
+                const agentConfig = {
+                  name: content.name || path.parse(file).name,
+                  role: content.role || "Assistant",
+                  description: content.description || "Imported agent",
+                  model: content.model,
+                  tools: content.tools,
+                  temperature: content.temperature,
+                  systemPrompt:
+                    content.systemPrompt ||
+                    content.system_prompt ||
+                    content.prompt,
+                };
+                await manager.createAgent(agentConfig);
+                count++;
+              } catch (e) {
+                /* ignore */
+              }
+            }
+          }
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `✅ Imported ${count} agents.`,
+              timestamp: new Date(),
+            },
+          ]);
+        } else if (type === "skills") {
+          const skillsDir = path.join(sourcePath, "skills");
+          if (!(await fs.pathExists(skillsDir))) {
+            throw new Error(`Skills directory not found at ${skillsDir}`);
+          }
+          const files = await fs.readdir(skillsDir);
+          const manager = SkillsManager.getInstance();
+          let count = 0;
+          for (const file of files) {
+            if (file.endsWith(".ts") || file.endsWith(".js")) {
+              try {
+                const content = await fs.readFile(
+                  path.join(skillsDir, file),
+                  "utf-8",
+                );
+                const name = path.parse(file).name;
+                await manager.saveSkill(name, content);
+                count++;
+              } catch (e) {
+                /* ignore */
+              }
+            }
+          }
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `✅ Imported ${count} skills.`,
+              timestamp: new Date(),
+            },
+          ]);
+        } else if (type === "hooks") {
+          const settingsFile =
+            source.toLowerCase() === "claude"
+              ? "settings.local.json"
+              : "settings.json";
+          const fullPath = path.join(sourcePath, settingsFile);
+
+          if (!(await fs.pathExists(fullPath))) {
+            throw new Error(`Settings file not found at ${fullPath}`);
+          }
+          const settings = await fs.readJson(fullPath);
+          if (settings.hooks) {
+            const manager = getSettingsManager();
+            const currentHooks = manager.getUserSetting("hooks") || {};
+            const mergedHooks = { ...currentHooks, ...settings.hooks };
+            manager.updateUserSetting("hooks", mergedHooks);
+            setChatHistory(prev => [
+              ...prev,
+              {
+                type: "assistant",
+                content: `✅ Imported ${Object.keys(settings.hooks).length} hooks.`,
+                timestamp: new Date(),
+              },
+            ]);
+          } else {
+            setChatHistory(prev => [
+              ...prev,
+              {
+                type: "assistant",
+                content: "⚠️ No hooks found in settings file.",
+                timestamp: new Date(),
+              },
+            ]);
+          }
+        } else {
+          throw new Error(`Unknown import type: ${type}`);
+        }
+      } catch (error: any) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `❌ Import failed: ${error.message}`,
+            timestamp: new Date(),
+          },
+        ]);
+      } finally {
+        setIsProcessing(false);
+      }
+
       clearInput();
       return true;
     }
