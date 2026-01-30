@@ -219,7 +219,58 @@ Commands:
   plugins list/install/uninstall <name/path> Manage plugins for Super Agent CLI
   git                                        Git operations with AI assistance
   mcp                                        Manage MCP servers
+  web                                        Start web interface
+  serve                                      Start both TUI and web interfaces
 ```
+
+### Plugin System
+
+Extend Super Agent with custom tools and capabilities through plugins.
+
+#### Installing Plugins
+
+**From GitHub Repository:**
+
+```bash
+# Full URL
+super-agent plugins install https://github.com/involvex/super-agent-cli-plugins
+
+# Short format (owner/repo)
+super-agent plugins install involvex/super-agent-cli-plugins
+```
+
+**From Local Directory:**
+
+```bash
+super-agent plugins install ./my-plugin
+super-agent plugins install /path/to/plugin-directory
+```
+
+**From File:**
+
+```bash
+super-agent plugins install ./plugin.js
+super-agent plugins install /path/to/plugin/dist/index.js
+```
+
+#### Managing Plugins
+
+```bash
+# List installed plugins
+super-agent plugins list
+
+# Uninstall a plugin
+super-agent plugins uninstall plugin-name
+```
+
+#### Creating Plugins
+
+See the [official plugin repository](https://github.com/involvex/super-agent-cli-plugins) for:
+
+- Example plugins (weather, database, notifications)
+- Plugin templates
+- Quickstart guide
+- API documentation
 
 ### Custom Instructions
 

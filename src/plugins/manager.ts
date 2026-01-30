@@ -2,8 +2,12 @@ import { getSettingsManager } from "../utils/settings-manager";
 import { SuperAgent } from "../agent/super-agent";
 import { SuperAgentTool } from "../core/client";
 import { SuperAgentPlugin } from "./types";
+import { exec } from "child_process";
+import { promisify } from "util";
 import * as fs from "fs-extra";
 import * as path from "path";
+
+const execAsync = promisify(exec);
 
 export class PluginManager {
   private static instance: PluginManager;
@@ -81,24 +85,174 @@ export class PluginManager {
   }
 
   public async installPlugin(pluginPath: string): Promise<string> {
-    // For now, "install" just means enabling it in settings
-    // In future, could copy files or npm install
+    let resolvedPath = pluginPath;
 
-    // Verify it loads first
-    // We can't fully verify without an agent instance easily here,
-    // but we can try basic import
+    // Check if it's a GitHub URL
+    if (this.isGitHubUrl(pluginPath)) {
+      console.log(`📦 Cloning from GitHub: ${pluginPath}...`);
+      resolvedPath = await this.cloneGitHubRepo(pluginPath);
+      console.log(`✅ Cloned to: ${resolvedPath}`);
+    }
+    // Check if it's a local directory
+    else if (await this.isDirectory(pluginPath)) {
+      console.log(`📁 Installing from local directory: ${pluginPath}...`);
+      resolvedPath = await this.installFromDirectory(pluginPath);
+      console.log(`✅ Installed from: ${pluginPath}`);
+    }
+    // Otherwise treat as file path
+    else {
+      resolvedPath = path.resolve(pluginPath);
+      if (!(await fs.pathExists(resolvedPath))) {
+        throw new Error(`Plugin file not found: ${resolvedPath}`);
+      }
+    }
 
     // Add to settings
     const manager = getSettingsManager();
     const settings = manager.loadUserSettings();
     const plugins = settings.plugins || [];
 
-    if (!plugins.includes(pluginPath)) {
-      plugins.push(pluginPath);
+    if (!plugins.includes(resolvedPath)) {
+      plugins.push(resolvedPath);
       manager.updateUserSetting("plugins", plugins);
-      return pluginPath;
+      return resolvedPath;
     }
-    return pluginPath;
+    return resolvedPath;
+  }
+
+  private isGitHubUrl(url: string): boolean {
+    return (
+      url.startsWith("https://github.com/") ||
+      url.startsWith("git@github.com:") ||
+      url.match(/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+$/) !== null
+    ); // owner/repo format
+  }
+
+  private async isDirectory(filePath: string): Promise<boolean> {
+    try {
+      const stats = await fs.stat(filePath);
+      return stats.isDirectory();
+    } catch {
+      return false;
+    }
+  }
+
+  private async cloneGitHubRepo(repoUrl: string): Promise<string> {
+    // Normalize GitHub URL
+    let gitUrl = repoUrl;
+    if (repoUrl.match(/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+$/)) {
+      gitUrl = `https://github.com/${repoUrl}.git`;
+    } else if (!repoUrl.endsWith(".git")) {
+      gitUrl = `${repoUrl}.git`;
+    }
+
+    // Extract repo name
+    const repoName = path.basename(gitUrl, ".git");
+    const targetDir = path.join(this.pluginDirectory, repoName);
+
+    // Check if already cloned
+    if (await fs.pathExists(targetDir)) {
+      console.log(
+        `Repository already cloned at ${targetDir}. Pulling latest...`,
+      );
+      try {
+        await execAsync(`cd "${targetDir}" && git pull`);
+      } catch (error) {
+        console.warn(`Failed to pull updates: ${error}`);
+      }
+    } else {
+      // Clone the repository
+      await execAsync(`git clone "${gitUrl}" "${targetDir}"`);
+    }
+
+    // Try to build if package.json exists
+    const packageJsonPath = path.join(targetDir, "package.json");
+    if (await fs.pathExists(packageJsonPath)) {
+      console.log("📦 Installing dependencies...");
+      try {
+        // Detect package manager
+        const hasBun = await fs.pathExists(path.join(targetDir, "bun.lockb"));
+        const hasYarn = await fs.pathExists(path.join(targetDir, "yarn.lock"));
+
+        const installCmd = hasBun
+          ? "bun install"
+          : hasYarn
+            ? "yarn install"
+            : "npm install";
+        await execAsync(`cd "${targetDir}" && ${installCmd}`);
+
+        console.log("🔨 Building plugin...");
+        const buildCmd = hasBun
+          ? "bun run build"
+          : hasYarn
+            ? "yarn build"
+            : "npm run build";
+        await execAsync(`cd "${targetDir}" && ${buildCmd}`);
+      } catch (error: any) {
+        console.warn(`Build failed: ${error.message}`);
+      }
+    }
+
+    // Return path to built plugin or src/index.ts
+    const distPath = path.join(targetDir, "dist", "index.js");
+    if (await fs.pathExists(distPath)) {
+      return distPath;
+    }
+
+    const srcPath = path.join(targetDir, "src", "index.ts");
+    if (await fs.pathExists(srcPath)) {
+      return srcPath;
+    }
+
+    return path.join(targetDir, "index.js");
+  }
+
+  private async installFromDirectory(dirPath: string): Promise<string> {
+    const absolutePath = path.resolve(dirPath);
+
+    // Check for package.json and build if needed
+    const packageJsonPath = path.join(absolutePath, "package.json");
+    if (await fs.pathExists(packageJsonPath)) {
+      console.log("📦 Installing dependencies...");
+      try {
+        const hasBun = await fs.pathExists(
+          path.join(absolutePath, "bun.lockb"),
+        );
+        const hasYarn = await fs.pathExists(
+          path.join(absolutePath, "yarn.lock"),
+        );
+
+        const installCmd = hasBun
+          ? "bun install"
+          : hasYarn
+            ? "yarn install"
+            : "npm install";
+        await execAsync(`cd "${absolutePath}" && ${installCmd}`);
+
+        console.log("🔨 Building plugin...");
+        const buildCmd = hasBun
+          ? "bun run build"
+          : hasYarn
+            ? "yarn build"
+            : "npm run build";
+        await execAsync(`cd "${absolutePath}" && ${buildCmd}`);
+      } catch (error: any) {
+        console.warn(`Build failed: ${error.message}`);
+      }
+    }
+
+    // Return path to built plugin
+    const distPath = path.join(absolutePath, "dist", "index.js");
+    if (await fs.pathExists(distPath)) {
+      return distPath;
+    }
+
+    const srcPath = path.join(absolutePath, "src", "index.ts");
+    if (await fs.pathExists(srcPath)) {
+      return srcPath;
+    }
+
+    return path.join(absolutePath, "index.js");
   }
 
   public async removePlugin(pluginOrPath: string): Promise<void> {
