@@ -1,3 +1,9 @@
+## [0.0.67](https://github.com/involvex/super-agent-cli/compare/v0.0.66...v0.0.67) (2026-01-31)
+
+### Features
+
+- **input:** enable runtime extension of slash commands with user settings integration ([cb705f4](https://github.com/involvex/super-agent-cli/commit/cb705f446b13c73016aa60e8d88be6ed58f8f58c))
+
 ## [0.0.66](https://github.com/involvex/super-agent-cli/compare/v0.0.65...v0.0.66) (2026-01-30)
 
 ### Features
