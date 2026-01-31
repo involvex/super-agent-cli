@@ -248,19 +248,40 @@ Current working directory: ${process.cwd()}`,
   /**
    * Set the active provider dynamically
    */
-  public setProvider(providerId: string): void {
+  public async setProvider(providerId: string): Promise<void> {
     const manager = getSettingsManager();
 
-    // Normalize provider ID and update active provider in settings
+    // Normalize provider ID
     const activeProviderId = (providerId || "grok").toLowerCase();
 
-    // Load config for this specific provider ID
-    const settings = manager.loadUserSettings();
-    const providerConfig = settings.providers[activeProviderId];
+    // First set the active provider in settings
+    manager.setActiveProvider(activeProviderId);
+
+    // Now get the config using the settings manager's method
+    const providerConfig = manager.getActiveProviderConfig();
     const providerType = providerConfig?.provider || activeProviderId;
 
-    const effectiveApiKey = providerConfig?.api_key || "";
-    let effectiveBaseURL = providerConfig?.base_url || undefined;
+    // Debug logging
+    console.log("setProvider debug:", {
+      providerId,
+      activeProviderId,
+      providerConfig,
+      providerType,
+      effectiveApiKey: providerConfig?.api_key,
+    });
+
+    // Validate provider exists
+    if (!providerConfig) {
+      throw new Error(`Provider '${activeProviderId}' not found in settings`);
+    }
+
+    // Validate API key
+    const effectiveApiKey = providerConfig.api_key || "";
+    if (!effectiveApiKey && providerType !== "openai-compatible") {
+      throw new Error(`API key not found for provider '${activeProviderId}'`);
+    }
+
+    let effectiveBaseURL = providerConfig.base_url || undefined;
 
     // Cloudflare Workers AI specific handling
     if (
@@ -272,39 +293,68 @@ Current working directory: ${process.cwd()}`,
           "{ACCOUNT_ID}",
           providerConfig.account_id,
         );
+      } else {
+        throw new Error(
+          `Account ID not found for Workers AI provider '${activeProviderId}'`,
+        );
       }
     }
 
+    // Validate model exists for provider
     const effectiveModel =
-      providerConfig?.model ||
-      providerConfig?.default_model ||
+      providerConfig.model ||
+      providerConfig.default_model ||
       "grok-code-fast-1";
 
-    // Re-instantiate appropriate provider
-    if (providerType === "openai") {
-      this.superAgentClient = new OpenAIProvider(
-        effectiveApiKey,
-        effectiveBaseURL,
-        effectiveModel,
-      );
-    } else if (providerType === "gemini" || providerType === "google") {
-      this.superAgentClient = new GeminiProvider(
-        effectiveApiKey,
-        effectiveBaseURL,
-        effectiveModel,
-      );
-    } else if (providerType === "grok") {
-      this.superAgentClient = new GrokProvider(
-        effectiveApiKey,
-        effectiveBaseURL,
-        effectiveModel,
-      );
-    } else {
-      this.superAgentClient = new OpenAICompatibleProvider(
-        effectiveApiKey,
-        effectiveBaseURL || "",
-        effectiveModel,
-        activeProviderId,
+    // For providers that have model lists, validate the model
+    if (this.superAgentClient.listModels) {
+      // Try to get models, but don't fail if it's not available
+      try {
+        const availableModels = await this.superAgentClient.listModels();
+        if (
+          availableModels.length > 0 &&
+          !availableModels.includes(effectiveModel)
+        ) {
+          console.warn(
+            `Warning: Model '${effectiveModel}' may not be available for provider '${activeProviderId}'`,
+          );
+        }
+      } catch (error) {
+        // Ignore errors when checking available models
+      }
+    }
+
+    try {
+      // Re-instantiate appropriate provider
+      if (providerType === "openai") {
+        this.superAgentClient = new OpenAIProvider(
+          effectiveApiKey,
+          effectiveBaseURL,
+          effectiveModel,
+        );
+      } else if (providerType === "gemini" || providerType === "google") {
+        this.superAgentClient = new GeminiProvider(
+          effectiveApiKey,
+          effectiveBaseURL,
+          effectiveModel,
+        );
+      } else if (providerType === "grok") {
+        this.superAgentClient = new GrokProvider(
+          effectiveApiKey,
+          effectiveBaseURL,
+          effectiveModel,
+        );
+      } else {
+        this.superAgentClient = new OpenAICompatibleProvider(
+          effectiveApiKey,
+          effectiveBaseURL || "",
+          effectiveModel,
+          activeProviderId,
+        );
+      }
+    } catch (error) {
+      throw new Error(
+        `Failed to initialize provider '${activeProviderId}': ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
 

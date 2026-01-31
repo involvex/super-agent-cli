@@ -21,7 +21,7 @@ export class MockSettingsManager {
           id: "grok",
           provider: "grok",
           model: "grok-code-fast-1",
-          api_key: "mock-api-key",
+          api_key: "test-api-key",
           base_url: "https://api.mock.com/v1",
           default_model: "grok-code-fast-1",
         },

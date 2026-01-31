@@ -158,22 +158,6 @@ Super Agent CLI provides several interactive features to enhance your workflow:
 - **File Mentions**: Reference files using `@filename` in your prompts
 - **Folder Mentions**: Reference entire folders using `@folder` in your prompts
 
-Start the conversational AI assistant:
-
-```bash
-super-agent
-# or
-super-agent about
-# or
-super-agent plugins list
-```
-
-Or specify a working directory:
-
-```bash
-super-agent -d /path/to/project
-```
-
 ### Headless Mode
 
 Process a single prompt and exit (useful for scripting and automation):
@@ -216,18 +200,37 @@ super-agent git commit-and-push --max-tool-rounds 30  # Git commands
 
 ### Model Selection
 
-You can specify which AI model to use with the `--model` parameter
+You can specify which AI model to use with the `--model` parameter:
 
+#### Method 1: Command Line Flag
+
+```bash
 # Use Super Agent models
-
 super-agent --model gemini-3-pro-preview
 super-agent --model gemini-2.5-pro
 super-agent --model gemini-2.5-flash
+```
 
-**Method 2: User Settings File**
+#### Method 2: User Settings File
+
 Add to `~/.super-agent/settings.json`:
 
-**Model Priority**: `--model` flag > user default model > system default (gemini-3-pro-preview)
+```json
+{
+  "active_provider": "gemini",
+  "providers": {
+    "gemini": {
+      "id": "gemini",
+      "provider": "gemini",
+      "model": "gemini-3-pro-preview",
+      "api_key": "YOUR_API_KEY",
+      "default_model": "gemini-3-pro-preview"
+    }
+  }
+}
+```
+
+**Model Priority**: `--model` flag > user default model > system default (`gemini-3-pro-preview`)
 
 ### Command Line Options
 

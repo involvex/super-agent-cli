@@ -236,26 +236,59 @@ export function useInputHandler({
       if (key.return || key.tab) {
         if (providers.length > 0) {
           const selectedProviderId = providers[selectedProviderIndex];
-          manager.setActiveProvider(selectedProviderId);
+          const providerConfig = settings.providers[selectedProviderId];
 
-          // Update agent with new provider
-          try {
-            agent.setProvider(selectedProviderId);
-          } catch (error) {
-            console.error("Error setting provider:", error);
+          // Validate provider has API key
+          if (
+            !providerConfig?.api_key &&
+            providerConfig?.provider !== "openai-compatible"
+          ) {
+            setChatHistory(prev => [
+              ...prev,
+              {
+                type: "assistant",
+                content: `❌ Provider '${selectedProviderId}' requires an API key. Use '/provider config ${selectedProviderId}' to configure.`,
+                timestamp: new Date(),
+              },
+            ]);
+            setShowProviderSelection(false);
+            return true;
           }
 
-          // But setActiveProvider updates local state which drives the UI.
-          setActiveProvider(selectedProviderId);
+          try {
+            manager.setActiveProvider(selectedProviderId);
+            agent.setProvider(selectedProviderId);
+            setActiveProvider(selectedProviderId);
 
-          setChatHistory(prev => [
-            ...prev,
-            {
-              type: "assistant",
-              content: `✓ Switched active provider to: ${selectedProviderId}`,
-              timestamp: new Date(),
-            },
-          ]);
+            // Suggest restart for certain providers
+            const suggestRestart =
+              providerConfig?.provider === "openai" ||
+              providerConfig?.provider === "gemini";
+
+            let restartMessage = "";
+            if (suggestRestart) {
+              restartMessage =
+                "\n\nNote: Some providers may require a full restart of the CLI to take effect.";
+            }
+
+            setChatHistory(prev => [
+              ...prev,
+              {
+                type: "assistant",
+                content: `✓ Switched active provider to: ${selectedProviderId}${restartMessage}`,
+                timestamp: new Date(),
+              },
+            ]);
+          } catch (error: any) {
+            setChatHistory(prev => [
+              ...prev,
+              {
+                type: "assistant",
+                content: `❌ Failed to switch provider: ${error.message}`,
+                timestamp: new Date(),
+              },
+            ]);
+          }
         }
         setShowProviderSelection(false);
         return true;
@@ -1240,19 +1273,54 @@ Use /config set ui.statusbar_config.show_model true to toggle individual items.
       const settings = manager.loadUserSettings();
 
       if (settings.providers && settings.providers[providerId]) {
-        manager.setActiveProvider(providerId);
+        const providerConfig = settings.providers[providerId];
+
+        // Validate provider has API key
+        if (
+          !providerConfig?.api_key &&
+          providerConfig?.provider !== "openai-compatible"
+        ) {
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `❌ Provider '${providerId}' requires an API key. Use '/provider config ${providerId}' to configure.`,
+              timestamp: new Date(),
+            },
+          ]);
+          clearInput();
+          return true;
+        }
 
         try {
-          // Update agent configuration
+          manager.setActiveProvider(providerId);
           agent.setProvider(providerId);
-          // Trigger UI update
           setActiveProvider(providerId);
+
+          // Suggest restart for certain providers
+          const providerType = providerConfig.provider || providerId;
+          const suggestRestart =
+            providerType === "openai" ||
+            providerType === "gemini" ||
+            providerType === "anthropic";
+
+          let restartMessage = "";
+          if (suggestRestart) {
+            restartMessage =
+              "\n\nNote: This provider may require a full restart of the CLI to take effect.";
+          }
+
+          // Check if we need to update model configuration
+          if (!providerConfig.model) {
+            restartMessage +=
+              "\n\nNo model specified for this provider. Consider setting one with '/model set <model>'.";
+          }
 
           setChatHistory(prev => [
             ...prev,
             {
               type: "assistant",
-              content: `✓ Switched active provider to: ${providerId}`,
+              content: `✓ Switched active provider to: ${providerId}${restartMessage}`,
               timestamp: new Date(),
             },
           ]);
@@ -1271,7 +1339,7 @@ Use /config set ui.statusbar_config.show_model true to toggle individual items.
           ...prev,
           {
             type: "assistant",
-            content: `❌ Provider '${providerId}' not found.`,
+            content: `❌ Provider '${providerId}' not found. Use '/provider list' to see available providers.`,
             timestamp: new Date(),
           },
         ]);
