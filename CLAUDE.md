@@ -192,4 +192,6 @@ The project uses Bun workspaces for plugins:
 ]
 ```
 
+**Note**: The `vscode-extension/` workspace uses `npm` for dependency management (required by `vsce` packaging tool), while the root project uses `bun`. This is a necessary hybrid approach because `vsce` requires `npm list` validation which doesn't work with bun's lockfile format.
+
 Plugin templates and examples are developed as separate packages in the `@plugins/` directory.

@@ -59,6 +59,7 @@ Build a Agentic Coding Cli Tool using Bun. Support multiple LLMs like Grok, GPT,
 - Added WebSocket connector to CLI
 - Created file context provider for @mentions
 - Fixed icon property - using PNG format (icon.png) for VS Code marketplace compatibility
+- **Note**: vscode-extension uses npm for dependency management (required by vsce packaging), while root project uses bun
 
 ### WebSocket Graceful Degradation ✅
 

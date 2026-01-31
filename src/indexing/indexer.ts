@@ -1,7 +1,7 @@
 import { getSettingsManager } from "../utils/settings-manager";
 import { FileIndex, FileIndexEntry } from "./types";
-import * as fs from "fs-extra";
 import * as path from "path";
+import fs from "fs-extra";
 
 const INDEX_VERSION = 1;
 const INDEX_FILENAME = "index.json";

@@ -62,6 +62,8 @@ You can:
 
 ## Development
 
+**Note**: This extension uses `npm` for dependency management (required by `vsce` packaging tool), while the root project uses `bun`.
+
 ```bash
 # Install dependencies
 npm install

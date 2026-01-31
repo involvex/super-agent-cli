@@ -28,7 +28,7 @@
   },
   "main": "dist/index.js",
   "bin": {
-    "super-agent": "dist/index.js"
+    "super-agent": "super-agent.js"
   },
   "workspaces": [
     "@plugins/templates/*",
@@ -37,13 +37,14 @@
   ],
   "scripts": {
     "prebuild": "bun run format && bun run lint:fix && bun run typecheck",
-    "build": "bun build src/index.ts --outdir ./dist --target node --packages external --format esm",
+    "build": "bun build src/index.ts --outdir ./dist --target node --packages external --format esm && bun run copy-bin && bun run build:web",
     "build:bun": "bun build src/index.ts --outdir ./dist --target node --packages external --format esm",
     "build:plugins": "bun run -F @involvex/super-agent\\* build",
     "build:vscode": "bun run -F super-agent-vscode build",
     "build:web": "bun run scripts/build-web.ts",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
     "compile": "bun run prebuild && bun build --compile src/index.ts --outfile ./dist/super-agent-cli.exe --config bunfig.toml",
+    "copy-bin": "cp super-agent.js dist/super-agent.js",
     "dev": "bun run --watch src/index.ts",
     "dev:node": "tsx src/index.ts",
     "format": "prettier --write .",
@@ -52,8 +53,8 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --ignore-pattern dist",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix --ignore-pattern dist",
     "package:vscode": "bun run -F super-agent-vscode package",
-    "start": "node dist/index.js",
-    "start:bun": "bun run dist/index.js",
+    "start": "bun run dist/index.js",
+    "start:node": "node dist/index.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run src/tests/integration",

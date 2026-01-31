@@ -18,7 +18,7 @@ import { handleRepositoryCommand } from "../commands/repository";
 import { getSettingsManager } from "../utils/settings-manager";
 import { getChatManager } from "../utils/chat-manager";
 import { getPluginManager } from "../plugins/manager";
-import * as fs from "fs-extra";
+import fs from "fs-extra";
 
 type AgentMode = "plan" | "code" | "debug";
 

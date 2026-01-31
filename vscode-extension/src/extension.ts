@@ -59,6 +59,23 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(mentionFileCommand);
 
+  // Add manual reconnect command
+  const reconnectCommand = vscode.commands.registerCommand(
+    "super-agent.reconnect",
+    async () => {
+      cliConnector.disconnect();
+      try {
+        await cliConnector.connect();
+        vscode.window.showInformationMessage("Connected to Super Agent CLI");
+      } catch (error) {
+        vscode.window.showErrorMessage(
+          "Failed to connect. Make sure 'super-agent web' is running.",
+        );
+      }
+    },
+  );
+  context.subscriptions.push(reconnectCommand);
+
   const askAICommand = vscode.commands.registerCommand(
     "super-agent.askAI",
     async () => {

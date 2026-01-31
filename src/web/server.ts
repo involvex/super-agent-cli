@@ -45,17 +45,27 @@ export class WebServer {
     const url = req.url || "/";
 
     // Security: Normalize and validate the requested path
-    const requestedPath = url === "/" ? "index.html" : url;
+    // Remove leading slash for path joining
+    let requestedPath = url === "/" ? "index.html" : url.substring(1);
 
     // Remove query strings and fragments
     const sanitizedPath = requestedPath.split("?")[0].split("#")[0];
 
     // Resolve to absolute path and ensure it's within the client directory
-    const clientDir = path.join(__dirname, "../web/client");
-    const absolutePath = path.resolve(clientDir, sanitizedPath.substring(1));
+    // When bundled: __dirname = dist/, files are in dist/web
+    // When from source: __dirname = src/web/, files are in src/web/client
+    const distWebPath = path.join(process.cwd(), "dist", "web");
+    const sourceWebPath = path.join(process.cwd(), "src", "web", "client");
+    const clientDir = (await fs.pathExists(distWebPath))
+      ? distWebPath
+      : sourceWebPath;
+    const absolutePath = path.resolve(clientDir, sanitizedPath);
 
     // Security check: ensure the resolved path is within the client directory
-    if (!absolutePath.startsWith(clientDir)) {
+    // Normalize paths for comparison (handles Windows vs Unix path differences)
+    const normalizedClientDir = path.resolve(clientDir);
+    const normalizedAbsolutePath = path.resolve(absolutePath);
+    if (!normalizedAbsolutePath.startsWith(normalizedClientDir)) {
       res.writeHead(403, { "Content-Type": "text/plain" });
       res.end("Forbidden");
       return;

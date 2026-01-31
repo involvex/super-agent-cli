@@ -20,6 +20,9 @@ export class CLIConnector {
   private messageHandlers: Map<string, (message: CLIResponse) => void> =
     new Map();
   private statusChangeHandlers: ((connected: boolean) => void)[] = [];
+  private hasShownConnectionError = false; // Track if we've shown the error
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 10; // Stop trying after N attempts
 
   constructor(private context: vscode.ExtensionContext) {
     this.loadSettings();
@@ -38,29 +41,37 @@ export class CLIConnector {
     const settings = this.loadSettings();
     const wsUrl = `ws://${settings.cliHost}:${settings.cliPort}`;
 
+    console.log(`[Super Agent] Connecting to ${wsUrl}...`);
+
     return new Promise((resolve, reject) => {
       try {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.on("open", () => {
+          console.log(`[Super Agent] Connected to CLI at ${wsUrl}`);
           this.isConnected = true;
+          this.reconnectAttempts = 0; // Reset on successful connection
+          this.hasShownConnectionError = false; // Reset error flag
           this.notifyStatusChange(true);
-          vscode.window.showInformationMessage("Connected to Super Agent CLI");
           this.clearReconnectTimer();
           resolve(true);
         });
 
         this.ws.on("error", error => {
+          console.error(`[Super Agent] Connection error:`, error);
           this.isConnected = false;
           this.notifyStatusChange(false);
-          vscode.window.showWarningMessage(
-            "Could not connect to Super Agent CLI. Make sure it's running with --web flag.",
-          );
+          // Only show error message on first attempt, not on retries
+          if (this.reconnectAttempts === 0 && !this.hasShownConnectionError) {
+            this.showConnectionError();
+            this.hasShownConnectionError = true;
+          }
           this.scheduleReconnect();
-          reject(error);
+          reject(new Error("Connection failed"));
         });
 
         this.ws.on("close", () => {
+          console.log(`[Super Agent] Connection closed`);
           this.isConnected = false;
           this.notifyStatusChange(false);
           this.scheduleReconnect();
@@ -84,6 +95,7 @@ export class CLIConnector {
 
   disconnect(): void {
     this.clearReconnectTimer();
+    this.reconnectAttempts = this.maxReconnectAttempts; // Stop reconnect attempts
     if (this.ws) {
       this.ws.close();
       this.ws = null;
@@ -92,16 +104,36 @@ export class CLIConnector {
     this.notifyStatusChange(false);
   }
 
+  private showConnectionError(): void {
+    vscode.window.showWarningMessage(
+      "Could not connect to Super Agent CLI. Please run 'super-agent web' in your project directory.",
+    );
+  }
+
   private scheduleReconnect(): void {
     this.clearReconnectTimer();
-    this.reconnectTimer = setTimeout(() => {
-      const settings = this.loadSettings();
-      if (settings.autoConnect) {
+
+    // Stop reconnecting after max attempts
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.log("Max reconnect attempts reached. Stopping auto-reconnect.");
+      return;
+    }
+
+    this.reconnectAttempts++;
+    const settings = this.loadSettings();
+    if (settings.autoConnect) {
+      // Exponential backoff: 5s, 10s, 20s, 40s, max 60s
+      const delay = Math.min(
+        5000 * Math.pow(2, this.reconnectAttempts - 1),
+        60000,
+      );
+
+      this.reconnectTimer = setTimeout(() => {
         this.connect().catch(() => {
           // Silently fail on reconnect
         });
-      }
-    }, 5000); // Reconnect after 5 seconds
+      }, delay);
+    }
   }
 
   private clearReconnectTimer(): void {
@@ -116,9 +148,12 @@ export class CLIConnector {
       const message: CLIMessage = { type, content };
       this.ws.send(JSON.stringify(message));
     } else {
-      vscode.window.showWarningMessage(
-        "Not connected to Super Agent CLI. Please run 'super-agent --web' in your project.",
-      );
+      // Only show message if user explicitly tries to send
+      if (type === "chat_message" || type === "command") {
+        vscode.window.showWarningMessage(
+          "Not connected to Super Agent CLI. Please run 'super-agent web' in your project directory.",
+        );
+      }
     }
   }
 
@@ -158,6 +193,14 @@ export class CLIConnector {
 
   getConnectionStatus(): boolean {
     return this.isConnected;
+  }
+
+  /**
+   * Reset connection state (call this when user manually triggers connection)
+   */
+  resetConnectionState(): void {
+    this.reconnectAttempts = 0;
+    this.hasShownConnectionError = false;
   }
 
   /**

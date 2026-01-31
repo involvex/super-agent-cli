@@ -34,6 +34,11 @@
         "icon": "icon.png"
       },
       {
+        "command": "super-agent.reconnect",
+        "title": "Reconnect to CLI",
+        "icon": "icon.png"
+      },
+      {
         "command": "super-agent.mentionFile",
         "title": "Mention File in Chat"
       },
