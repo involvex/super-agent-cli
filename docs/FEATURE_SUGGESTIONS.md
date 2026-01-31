@@ -446,3 +446,45 @@ This document contains a comprehensive list of feature suggestions for enhancing
 - **P2**: Medium - Nice to have, schedule when possible
 - **P3**: Low - Useful but not essential
 - **P4**: Experimental - For future consideration/research
+
+## Implementation Notes
+
+See [ROADMAP.md](./ROADMAP.md) for the current development plan and progress tracking.
+
+### Recently Completed ✅
+
+- **VS Code Extension** (P4 → Completed): Full VS Code extension with chat webview, file context mentions, and WebSocket connector to CLI. See `vscode-extension/` directory.
+- **Plugin Repository System** (P2 → Completed): Dynamic plugin repository management with git submodule support. Use `/repo install`, `/repo list`, `/repo update` commands.
+- **UI Optimization** (P2 → Partial): Component refactoring with custom hooks for better maintainability.
+- **Project Restructuring**: Reorganized documentation and assets for better project structure.
+
+### Next Up: Test Framework Integration (P0)
+
+The immediate priority is establishing a comprehensive test framework:
+
+1. **Framework Selection**: Vitest is already configured in `vitest.config.ts`
+2. **Test Structure**:
+   - Unit tests: `src/tests/unit/`
+   - Integration tests: `src/tests/integration/`
+   - Component tests: `src/tests/components/`
+3. **Coverage Goals**: 80%+ for core modules
+4. **CI/CD**: GitHub Actions workflow for automated testing
+
+### Contributing
+
+When implementing features from this list:
+
+1. Check [ROADMAP.md](./ROADMAP.md) for current priorities
+2. Create an issue to track the implementation
+3. Follow the established code patterns in `src/`
+4. Add tests for new functionality
+5. Update this document and ROADMAP.md with progress
+
+### Feature Requests
+
+To suggest new features or vote on existing ones:
+
+1. Open an issue on GitHub with the `feature-request` label
+2. Reference the relevant section from this document
+3. Provide use cases and examples
+4. Tag with priority (P0-P4) and estimated effort

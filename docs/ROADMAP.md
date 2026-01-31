@@ -224,6 +224,98 @@ This roadmap outlines the planned development priorities based on the FEATURE_SU
 
 The current development focus is on **Test Framework Integration (P0)** as the foundation for ensuring code quality and reliability across all future features.
 
+## Progress Tracking
+
+| Feature                       | Status         | Progress | Notes                                   |
+| ----------------------------- | -------------- | -------- | --------------------------------------- |
+| Test Framework Integration    | 🔄 In Progress | 0%       | Vitest configured, tests to be written  |
+| Chat History Management       | 📋 Planned     | 0%       | Awaiting test framework completion      |
+| Advanced Agent/Skill System   | 📋 Planned     | 0%       | Core agent exists, enhancement needed   |
+| Enhanced Search Capabilities  | 📋 Planned     | 0%       | Basic search exists, enhancement needed |
+| Code Review & Analysis Tools  | 📋 Planned     | 0%       | New feature                             |
+| Project Intelligence Features | 📋 Planned     | 0%       | New feature                             |
+| Git Integration Enhancements  | 📋 Planned     | 20%      | Basic git commands exist                |
+| UI/UX Improvements            | 📋 Planned     | 10%      | Component refactoring done              |
+| Collaboration Features        | 📋 Planned     | 0%       | New feature                             |
+| Performance & Reliability     | 📋 Planned     | 10%      | Basic error handling exists             |
+| Plugin & Extension System     | ✅ Complete    | 100%     | Repository system implemented           |
+| Developer Tools               | 📋 Planned     | 20%      | Debug mode exists                       |
+| VS Code Extension             | ✅ Complete    | 100%     | Full extension with webview             |
+
+## Implementation Phases
+
+### Phase 1: Foundation (Current)
+
+**Target**: Q1 2026
+**Goal**: Establish reliable development foundation
+
+- [x] Project structure reorganization
+- [x] Asset consolidation
+- [x] UI component refactoring
+- [ ] Test framework implementation
+- [ ] Core test coverage (80%+)
+- [ ] CI/CD pipeline setup
+
+### Phase 2: Core Features
+
+**Target**: Q1-Q2 2026
+**Goal**: Implement essential user-facing features
+
+- [ ] Chat history management
+- [ ] Advanced agent/skill system
+- [ ] Enhanced search capabilities
+- [ ] Code review and analysis tools
+
+### Phase 3: Intelligence & Integration
+
+**Target**: Q2 2026
+**Goal**: Add smart features and deeper integrations
+
+- [ ] Project intelligence features
+- [ ] Git integration enhancements
+- [ ] Advanced AI features research
+- [ ] Additional IDE integrations
+
+### Phase 4: Polish & Scale
+
+**Target**: Q3 2026
+**Goal**: Optimize, refine, and prepare for scale
+
+- [ ] UI/UX improvements
+- [ ] Performance optimization
+- [ ] Documentation completion
+- [ ] Community features
+
+## Version History
+
+### v0.0.79 (Current)
+
+- Project restructuring completed
+- VS Code extension with icon support
+- UI optimization with custom hooks
+- Asset consolidation
+- Documentation reorganization
+
+### Planned Releases
+
+**v0.1.0** - Test Framework & Foundation
+
+- Complete test coverage
+- CI/CD pipeline
+- Chat history management
+
+**v0.2.0** - Advanced Features
+
+- Agent/skill system
+- Enhanced search
+- Code review tools
+
+**v0.3.0** - Intelligence
+
+- Project intelligence
+- Git integration
+- Performance improvements
+
 ---
 
 _This roadmap is a living document and will be updated as priorities evolve._

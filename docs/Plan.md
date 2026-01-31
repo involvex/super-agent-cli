@@ -58,6 +58,7 @@ Build a Agentic Coding Cli Tool using Bun. Support multiple LLMs like Grok, GPT,
 - Implemented chat webview with file context mentions
 - Added WebSocket connector to CLI
 - Created file context provider for @mentions
+- Fixed icon property and asset consolidation
 
 ### WebSocket Graceful Degradation ✅
 
@@ -68,7 +69,9 @@ Build a Agentic Coding Cli Tool using Bun. Support multiple LLMs like Grok, GPT,
 ### Project Restructuring ✅
 
 - Reorganized documentation into docs/ directory
-- Consolidated assets into assets/ directory
+- Consolidated assets into assets/ directory with subdirectories:
+  - `assets/images/` - banner.png, favicon.png, logo.png
+  - `assets/vscode/` - VS Code extension icon.svg
 - Removed unused directories (.kilocode/, .mira/)
 - Removed redundant files (index.md)
 - Fixed workspace dependencies
@@ -79,3 +82,52 @@ Build a Agentic Coding Cli Tool using Bun. Support multiple LLMs like Grok, GPT,
 - Created custom hooks (use-command-history, use-keyboard-input)
 - Extracted UI components (Header, CommandHelp, CommandHistory, CommandInput)
 - Refactored app.tsx with modern React patterns
+- Added proper TypeScript types for setState handlers
+
+## Current Status (v0.0.79)
+
+**Architecture**: Provider-based LLM system with modular tools
+**Build System**: Bun with TypeScript, ESM output
+**Testing**: Vitest configured (tests to be implemented)
+**UI Framework**: Ink (React for terminals)
+**Supported Providers**: Grok, Gemini, OpenAI, OpenAI-compatible, Mistral, OpenRouter, Groq, DeepSeek, Ollama, Cloudflare Workers AI, Zai
+
+## Next Steps
+
+### Immediate (P0 - Critical)
+
+1. **Test Framework Implementation**
+   - Write unit tests for core agent logic
+   - Write integration tests for CLI commands
+   - Write component tests for React/Ink UI
+   - Set up CI/CD pipeline
+
+2. **Chat History Management**
+   - Implement save/load functionality
+   - Add chat history listing and search
+   - Export to various formats (Markdown, JSON)
+
+### Short-term (P1 - High Priority)
+
+3. **Advanced Agent/Skill System**
+   - Agent listing and switching
+   - Interactive agent creation
+   - Skill enable/disable commands
+
+4. **Enhanced Search**
+   - Fuzzy search with ripgrep
+   - Search filters and caching
+   - Code-aware search (functions, classes)
+
+5. **Code Review Tools**
+   - `/review` command for code review
+   - `/analyze` for code quality analysis
+   - `/refactor` suggestions
+
+## Technical Debt
+
+- [ ] Comprehensive test coverage
+- [ ] Error handling improvements
+- [ ] Performance optimization for large codebases
+- [ ] Better documentation for API surface
+- [ ] Type safety improvements (strict mode)
