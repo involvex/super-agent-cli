@@ -1,3 +1,9 @@
+## [0.0.78](https://github.com/involvex/super-agent-cli/compare/v0.0.77...v0.0.78) (2026-01-31)
+
+### Features
+
+- **commands:** add /init command to create Agents.md for project instructions ([d94ab19](https://github.com/involvex/super-agent-cli/commit/d94ab1924e193724f6594bf7e936c5cad1ddb216))
+
 ## [0.0.77](https://github.com/involvex/super-agent-cli/compare/v0.0.76...v0.0.77) (2026-01-31)
 
 ### Bug Fixes
