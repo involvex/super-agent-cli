@@ -1,3 +1,9 @@
+## [0.0.79](https://github.com/involvex/super-agent-cli/compare/v0.0.78...v0.0.79) (2026-01-31)
+
+### Features
+
+- add repository management and VS Code extension ([6a845f3](https://github.com/involvex/super-agent-cli/commit/6a845f33fe48f23e260de52c13703ba23477601c))
+
 ## [0.0.78](https://github.com/involvex/super-agent-cli/compare/v0.0.77...v0.0.78) (2026-01-31)
 
 ### Features
