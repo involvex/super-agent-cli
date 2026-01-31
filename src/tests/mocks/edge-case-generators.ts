@@ -65,12 +65,14 @@ export function generateWhitespaceVariations(base: string): string[] {
 }
 
 export function generateNewlineVariations(content: string): string[] {
+  const escapeForDoubleQuoted = (s: string): string =>
+    s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   return [
-    content.replace(/"/g, '\\"'),
-    content.replace(/"/g, '\\"').replace(/\n/g, "\r\n"),
-    content.replace(/"/g, '\\"').replace(/\n/g, "\r"),
-    content.replace(/"/g, '\\"').replace(/\n/g, "\n\n"),
-    content.replace(/"/g, '\\"').replace(/\n/g, "\r\n\r\n"),
+    escapeForDoubleQuoted(content),
+    escapeForDoubleQuoted(content).replace(/\n/g, "\r\n"),
+    escapeForDoubleQuoted(content).replace(/\n/g, "\r"),
+    escapeForDoubleQuoted(content).replace(/\n/g, "\n\n"),
+    escapeForDoubleQuoted(content).replace(/\n/g, "\r\n\r\n"),
     `${content}\n`,
     `${content}\r\n`,
     `${content}\n\n`,
