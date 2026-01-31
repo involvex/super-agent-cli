@@ -1,5 +1,6 @@
 export { BashTool } from "./bash";
 export { ConfirmationTool } from "./confirmation-tool";
+export { ImageGenerationTool } from "./image-generation";
 export { MorphEditorTool } from "./morph-editor";
 export { ProjectMapTool } from "./project-map";
 export { SearchTool } from "./search";

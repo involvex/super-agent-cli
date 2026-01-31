@@ -2,6 +2,9 @@
 # https://github.com/firebase/firebase-tools
 
 name: Deploy to Firebase Hosting on merge
+permissions:
+  contents: read
+  pull-requests: write
 on:
   push:
     branches:

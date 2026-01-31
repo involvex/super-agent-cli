@@ -586,6 +586,10 @@ export function useInputHandler({
       { command: "/config", description: "View or edit configuration" },
       { command: "/commands", description: "Manage custom commands" },
       { command: "/provider", description: "Manage AI providers" },
+      {
+        command: "/generate-image",
+        description: "Generate AI images from text",
+      },
       { command: "/chat save <name>", description: "Save current chat" },
       { command: "/chat load <name>", description: "Load a saved chat" },
       { command: "/chat list", description: "List saved chats" },
@@ -741,6 +745,13 @@ Config Commands:
   /config get <key>    - Get specific config value
   /config set <k> <v>  - Set config value
   /config reset        - Reset settings to defaults
+
+Image Generation Commands:
+  /generate-image <prompt>     - Generate AI image from text prompt
+  /generate-image "a cat"      - Basic usage
+  /generate-image "a cat 1024x1024 as png"  - With size and format
+  /config set image_generation.provider openai - Set image provider
+  /config set image_generation.model dall-e-3 - Set image model
 
 Custom Commands:
   /commands            - Manage custom slash commands
@@ -1095,6 +1106,93 @@ Enhanced Input Features:
           },
         ]);
       }
+      clearInput();
+      return true;
+    }
+
+    // Image generation commands
+    if (trimmedInput.startsWith("/generate-image ")) {
+      const prompt = trimmedInput.replace("/generate-image ", "").trim();
+
+      if (!prompt) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content:
+              '❌ Usage: /generate-image <prompt>\nExample: /generate-image "a cat in the forest comic art"',
+            timestamp: new Date(),
+          },
+        ]);
+        clearInput();
+        return true;
+      }
+
+      // Import and use the image generation service
+      (async () => {
+        try {
+          const { getImageGenerationService } =
+            await import("../image-generation");
+          const service = getImageGenerationService();
+
+          // Parse prompt for size and format
+          const parsed = service.parsePrompt(prompt);
+
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `🎨 Generating image: "${parsed.cleanPrompt}"${parsed.size ? ` (${parsed.size})` : ""}${parsed.format ? ` as ${parsed.format}` : ""}...\n`,
+              timestamp: new Date(),
+            },
+          ]);
+
+          const result = await service.generateImages({
+            prompt: parsed.cleanPrompt,
+            size: parsed.size,
+            format: parsed.format,
+          });
+
+          if (result.success) {
+            let output = `✅ Generated ${result.images.length} image(s):\n`;
+            for (const img of result.images) {
+              output += `   📁 ${img.path}\n`;
+              if (img.revised_prompt) {
+                output += `   💭 Revised: ${img.revised_prompt}\n`;
+              }
+            }
+            output += `\nImages saved to: ${service.getOutputDirectory()}`;
+
+            setChatHistory(prev => [
+              ...prev,
+              {
+                type: "assistant",
+                content: output,
+                timestamp: new Date(),
+              },
+            ]);
+          } else {
+            setChatHistory(prev => [
+              ...prev,
+              {
+                type: "assistant",
+                content: `❌ ${result.error}`,
+                timestamp: new Date(),
+              },
+            ]);
+          }
+        } catch (error: any) {
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `❌ Image generation failed: ${error.message}`,
+              timestamp: new Date(),
+            },
+          ]);
+        }
+      })();
+
       clearInput();
       return true;
     }

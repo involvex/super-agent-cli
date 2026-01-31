@@ -15,6 +15,7 @@ export const PROVIDER_MODELS: Record<string, string[]> = {
     "grok-2-vision-1212",
     "grok-2-1212",
     "grok-code-fast-1",
+    "grok-image-preview", // Image generation
   ],
   openai: [
     "gpt-4o",
@@ -23,12 +24,16 @@ export const PROVIDER_MODELS: Record<string, string[]> = {
     "o1-mini",
     "gpt-4-turbo",
     "gpt-3.5-turbo",
+    "dall-e-3", // Image generation
+    "dall-e-2", // Image generation
   ],
   gemini: [
     "gemini-2.0-flash",
     "gemini-2.0-pro-exp-02-05",
     "gemini-1.5-pro",
     "gemini-1.5-flash",
+    "imagen-3.0-generate-001", // Image generation
+    "imagen-3.0-generate-001-fast", // Image generation
   ],
   anthropic: [
     "claude-sonnet-4-20250514",
@@ -43,6 +48,8 @@ export const PROVIDER_MODELS: Record<string, string[]> = {
     "meta-llama/llama-3.1-70b-instruct",
     "mistralai/mistral-large",
     "google/gemini-flash-1.5",
+    "openai/dall-e-3", // Image generation via OpenRouter
+    "stabilityai/stable-diffusion-xl-base-1.0", // Image generation
   ],
   minimax: ["abab6.5s-chat"],
   groq: [
@@ -172,6 +179,13 @@ export interface UserSettings {
       auto_save: boolean;
       auto_load: boolean;
     };
+  };
+  image_generation?: {
+    enabled: boolean;
+    provider: string; // "openai" | "gemini" | "openrouter" | "openai-compatible"
+    model: string; // e.g., "dall-e-3", "imagen-3.0-generate-001"
+    output_dir: string; // Directory to save images (default: "./generated-images")
+    default_format?: "png" | "jpeg" | "webp"; // Default image format
   };
   settingsVersion?: number;
 }
@@ -338,6 +352,13 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
   conversation: {
     auto_compact: false,
     compact_threshold: 50,
+  },
+  image_generation: {
+    enabled: true,
+    provider: "openai",
+    model: "dall-e-3",
+    output_dir: "./generated-images",
+    default_format: "png",
   },
   settingsVersion: SETTINGS_VERSION,
 };
