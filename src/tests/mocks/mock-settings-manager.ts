@@ -119,6 +119,10 @@ export class MockSettingsManager {
     return this.getAvailableModels(providerId);
   }
 
+  getStorageDirectory(): string {
+    return "/mock/storage/directory";
+  }
+
   setShouldFail(shouldFail: boolean): void {
     this.shouldFail = shouldFail;
   }

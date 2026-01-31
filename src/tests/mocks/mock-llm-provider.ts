@@ -8,14 +8,19 @@ import type {
 export class MockLLMProvider implements LLMProvider {
   public name: string = "mock-provider";
   private _model: string = "mock-model";
+  private originalModel: string = "mock-model";
+  private originalName: string = "mock-provider";
   private responses: LLMResponse[] = [];
   private shouldFail: boolean = false;
   private failMessage: string = "Mock error";
   private streamingResponses: any[] = [];
+  private streamingResponsesSet: boolean = false;
 
   constructor(name: string = "mock-provider", model: string = "mock-model") {
     this.name = name;
     this._model = model;
+    this.originalModel = model;
+    this.originalName = name;
   }
 
   setModel(model: string): void {
@@ -57,7 +62,8 @@ export class MockLLMProvider implements LLMProvider {
       throw new Error(this.failMessage);
     }
 
-    if (this.streamingResponses.length > 0) {
+    // Only use custom streaming responses if explicitly set (even if empty)
+    if (this.streamingResponsesSet) {
       for (const chunk of this.streamingResponses) {
         yield chunk;
       }
@@ -97,6 +103,7 @@ export class MockLLMProvider implements LLMProvider {
 
   setNextStreamingResponses(chunks: any[]): void {
     this.streamingResponses = chunks;
+    this.streamingResponsesSet = true;
   }
 
   setShouldFail(shouldFail: boolean, message: string = "Mock error"): void {
@@ -107,7 +114,10 @@ export class MockLLMProvider implements LLMProvider {
   reset(): void {
     this.responses = [];
     this.streamingResponses = [];
+    this.streamingResponsesSet = false;
     this.shouldFail = false;
+    this._model = this.originalModel;
+    this.name = this.originalName;
   }
 }
 

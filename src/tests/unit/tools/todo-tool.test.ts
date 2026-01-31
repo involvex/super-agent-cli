@@ -20,8 +20,8 @@ describe("TodoTool", () => {
   describe("createTodoList", () => {
     it("should create todo list with valid todos", async () => {
       const todos = [
-        { id: "1", task: "Task 1", status: "pending", priority: "high" },
-        { id: "2", task: "Task 2", status: "pending", priority: "medium" },
+        { id: "1", content: "Task 1", status: "pending", priority: "high" },
+        { id: "2", content: "Task 2", status: "pending", priority: "medium" },
       ];
       const result = await tool.createTodoList(todos);
       assertToolResultSuccess(result);
@@ -36,7 +36,7 @@ describe("TodoTool", () => {
       const todos = [
         {
           id: "test-1",
-          task: "Complete task",
+          content: "Complete task",
           status: "pending" as const,
           priority: "high" as const,
           description: "Task description",
@@ -50,7 +50,7 @@ describe("TodoTool", () => {
       const todos = [
         {
           id: "1",
-          task: "Simple task",
+          content: "Simple task",
           status: "pending" as const,
           priority: "medium" as const,
         },
@@ -61,7 +61,12 @@ describe("TodoTool", () => {
 
     it("should handle todo with high priority", async () => {
       const todos = [
-        { id: "1", task: "Urgent task", status: "pending", priority: "high" },
+        {
+          id: "1",
+          content: "Urgent task",
+          status: "pending",
+          priority: "high",
+        },
       ];
       const result = await tool.createTodoList(todos);
       assertToolResultSuccess(result);
@@ -69,7 +74,12 @@ describe("TodoTool", () => {
 
     it("should handle todo with medium priority", async () => {
       const todos = [
-        { id: "1", task: "Normal task", status: "pending", priority: "medium" },
+        {
+          id: "1",
+          content: "Normal task",
+          status: "pending",
+          priority: "medium",
+        },
       ];
       const result = await tool.createTodoList(todos);
       assertToolResultSuccess(result);
@@ -77,7 +87,12 @@ describe("TodoTool", () => {
 
     it("should handle todo with low priority", async () => {
       const todos = [
-        { id: "1", task: "Optional task", status: "pending", priority: "low" },
+        {
+          id: "1",
+          content: "Optional task",
+          status: "pending",
+          priority: "low",
+        },
       ];
       const result = await tool.createTodoList(todos);
       assertToolResultSuccess(result);
@@ -85,9 +100,9 @@ describe("TodoTool", () => {
 
     it("should handle todos with mixed priorities", async () => {
       const todos = [
-        { id: "1", task: "Task 1", status: "pending", priority: "high" },
-        { id: "2", task: "Task 2", status: "pending", priority: "medium" },
-        { id: "3", task: "Task 3", status: "pending", priority: "low" },
+        { id: "1", content: "Task 1", status: "pending", priority: "high" },
+        { id: "2", content: "Task 2", status: "pending", priority: "medium" },
+        { id: "3", content: "Task 3", status: "pending", priority: "low" },
       ];
       const result = await tool.createTodoList(todos);
       assertToolResultSuccess(result);
@@ -95,8 +110,8 @@ describe("TodoTool", () => {
 
     it("should handle duplicate IDs", async () => {
       const todos = [
-        { id: "1", task: "Task 1", status: "pending", priority: "high" },
-        { id: "1", task: "Task 2", status: "pending", priority: "medium" },
+        { id: "1", content: "Task 1", status: "pending", priority: "high" },
+        { id: "1", content: "Task 2", status: "pending", priority: "medium" },
       ];
       const result = await tool.createTodoList(todos);
       expect(result).toBeDefined();
@@ -105,7 +120,7 @@ describe("TodoTool", () => {
     it("should handle very long task descriptions", async () => {
       const longTask = "a".repeat(10000);
       const todos = [
-        { id: "1", task: longTask, status: "pending", priority: "medium" },
+        { id: "1", content: longTask, status: "pending", priority: "medium" },
       ];
       const result = await tool.createTodoList(todos);
       assertToolResultSuccess(result);
@@ -115,7 +130,7 @@ describe("TodoTool", () => {
       const todos = [
         {
           id: "1",
-          task: "你好世界 🎉 日本語",
+          content: "你好世界 🎉 日本語",
           status: "pending",
           priority: "medium",
         },
@@ -128,9 +143,9 @@ describe("TodoTool", () => {
   describe("updateTodoList", () => {
     beforeEach(async () => {
       await tool.createTodoList([
-        { id: "1", task: "Task 1", status: "pending", priority: "high" },
-        { id: "2", task: "Task 2", status: "pending", priority: "medium" },
-        { id: "3", task: "Task 3", status: "pending", priority: "low" },
+        { id: "1", content: "Task 1", status: "pending", priority: "high" },
+        { id: "2", content: "Task 2", status: "pending", priority: "medium" },
+        { id: "3", content: "Task 3", status: "pending", priority: "low" },
       ]);
     });
 
@@ -153,7 +168,7 @@ describe("TodoTool", () => {
     });
 
     it("should update todo task description", async () => {
-      const updates = [{ id: "1", task: "Updated task" }];
+      const updates = [{ id: "1", content: "Updated task" }];
       const result = await tool.updateTodoList(updates);
       assertToolResultSuccess(result);
     });
@@ -203,7 +218,7 @@ describe("TodoTool", () => {
   describe("status transitions", () => {
     beforeEach(async () => {
       await tool.createTodoList([
-        { id: "1", task: "Task 1", status: "pending", priority: "medium" },
+        { id: "1", content: "Task 1", status: "pending", priority: "medium" },
       ]);
     });
 
@@ -258,7 +273,7 @@ describe("TodoTool", () => {
     it("should handle very large todo list", async () => {
       const todos = Array.from({ length: 1000 }, (_, i) => ({
         id: String(i),
-        task: `Task ${i}`,
+        content: `Task ${i}`,
         status: "pending" as const,
         priority: "medium" as const,
       }));
@@ -270,7 +285,7 @@ describe("TodoTool", () => {
       const todos = [
         {
           id: "1",
-          task: "",
+          content: "",
           status: "pending" as const,
           priority: "medium" as const,
         },
@@ -283,7 +298,7 @@ describe("TodoTool", () => {
       const todos = [
         {
           id: "1",
-          task: "!@#$%^&*()_+-=[]{}|;':\",./<>?",
+          content: "!@#$%^&*()_+-=[]{}|;':\",./<>?",
           status: "pending" as const,
           priority: "medium" as const,
         },
@@ -296,7 +311,7 @@ describe("TodoTool", () => {
       const todos = [
         {
           id: "1",
-          task: "Line 1\nLine 2\nLine 3",
+          content: "Line 1\nLine 2\nLine 3",
           status: "pending" as const,
           priority: "medium" as const,
         },
@@ -309,7 +324,7 @@ describe("TodoTool", () => {
       const todos = [
         {
           id: "1",
-          task: "Tab\there",
+          content: "Tab\there",
           status: "pending" as const,
           priority: "medium" as const,
         },
@@ -322,9 +337,9 @@ describe("TodoTool", () => {
   describe("remove todos", () => {
     beforeEach(async () => {
       await tool.createTodoList([
-        { id: "1", task: "Task 1", status: "pending", priority: "high" },
-        { id: "2", task: "Task 2", status: "pending", priority: "medium" },
-        { id: "3", task: "Task 3", status: "pending", priority: "low" },
+        { id: "1", content: "Task 1", status: "pending", priority: "high" },
+        { id: "2", content: "Task 2", status: "pending", priority: "medium" },
+        { id: "3", content: "Task 3", status: "pending", priority: "low" },
       ]);
     });
 
@@ -353,7 +368,7 @@ describe("TodoTool", () => {
   describe("update priority handling", () => {
     beforeEach(async () => {
       await tool.createTodoList([
-        { id: "1", task: "Task 1", status: "pending", priority: "medium" },
+        { id: "1", content: "Task 1", status: "pending", priority: "medium" },
       ]);
     });
 

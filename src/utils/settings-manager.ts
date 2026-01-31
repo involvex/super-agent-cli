@@ -513,8 +513,23 @@ export class SettingsManager {
   public getEffectiveSettings(): UserSettings {
     const user = this.loadUserSettings();
     const project = this.loadProjectSettings();
-    // Deep merge could be better, but for now simple spread (project overrides user)
-    return { ...user, ...project };
+
+    // Deep merge providers to ensure all provider configs are available
+    const mergedProviders = { ...user.providers };
+    if (project.providers) {
+      for (const [key, value] of Object.entries(project.providers)) {
+        mergedProviders[key] = {
+          ...(mergedProviders[key] || {}),
+          ...(value as any),
+        };
+      }
+    }
+
+    return {
+      ...user,
+      ...project,
+      providers: mergedProviders,
+    };
   }
 
   public getActiveProviderConfig(): ProviderConfig | undefined {

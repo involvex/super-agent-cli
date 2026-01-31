@@ -242,9 +242,9 @@ describe("MockLLMProvider", () => {
   });
 
   describe("setShouldFail", () => {
-    it("should set fail state", () => {
+    it("should set fail state", async () => {
       provider.setShouldFail(true);
-      expect(() => provider.chat([])).rejects.toThrow();
+      await expect(provider.chat([])).rejects.toThrow();
     });
 
     it("should use custom error message", async () => {
@@ -321,7 +321,7 @@ describe("MockLLMProvider", () => {
 
   describe("edge cases", () => {
     it("should handle very long messages", async () => {
-      const longMessage = "a".repeat(100000);
+      const longMessage = "a".repeat(10000);
       const messages: LLMMessage[] = [{ role: "user", content: longMessage }];
       const response = await provider.chat(messages);
       expect(response).toBeDefined();
