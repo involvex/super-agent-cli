@@ -39,6 +39,7 @@
     "build": "bun build src/index.ts --outdir ./dist --target node --packages external --format esm",
     "build:bun": "bun build src/index.ts --outdir ./dist --target node --packages external --format esm",
     "build:plugins": "bun run -F @involvex/super-agent\\* build",
+    "build:web": "bun run scripts/build-web.ts",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
     "compile": "bun run prebuild && bun build --compile src/index.ts --outfile ./dist/super-agent-cli.exe --config bunfig.toml",
     "dev": "bun run --watch src/index.ts",
