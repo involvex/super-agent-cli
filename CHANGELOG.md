@@ -1,3 +1,9 @@
+## [0.0.72](https://github.com/involvex/super-agent-cli/compare/v0.0.71...v0.0.72) (2026-01-31)
+
+### Features
+
+- **testing:** add comprehensive testing infrastructure with Vitest ([cb0d9bd](https://github.com/involvex/super-agent-cli/commit/cb0d9bdf91dec92e3c174baebc4f69bd4bdc040b))
+
 ## [0.0.71](https://github.com/involvex/super-agent-cli/compare/v0.0.70...v0.0.71) (2026-01-31)
 
 ## [0.0.70](https://github.com/involvex/super-agent-cli/compare/v0.0.69...v0.0.70) (2026-01-30)
