@@ -36,3 +36,46 @@ Build a Agentic Coding Cli Tool using Bun. Support multiple LLMs like Grok, GPT,
 - [x] switching modes(plan, code, debug) (shift+tab)
 - [x] configurable hotkeys
 - [x] Command Palette (ctrl+p)
+
+## Completed Features
+
+### CLI UI Input Bug Fixes ✅
+
+- Fixed command palette (Ctrl+P) - now replaces input instead of appending
+- Fixed @mentions completion - proper cursor positioning
+- Fixed provider selection with 'e' - cursor at end of command
+- Added centralized UI state cleanup function
+
+### Dynamic Plugin Repository System ✅
+
+- Created `src/plugins/repository-manager.ts` with git submodule support
+- Added `/repo install`, `/repo list`, `/repo update`, `/repo enable`, `/repo disable` commands
+- Supports agents, skills, hooks, and MCP repositories
+
+### VS Code Extension ✅
+
+- Created `vscode-extension/` workspace
+- Implemented chat webview with file context mentions
+- Added WebSocket connector to CLI
+- Created file context provider for @mentions
+
+### WebSocket Graceful Degradation ✅
+
+- Added disconnected mode for Firebase Hosting
+- Shows informative banner when CLI not connected
+- Disables interactive elements in read-only mode
+
+### Project Restructuring ✅
+
+- Reorganized documentation into docs/ directory
+- Consolidated assets into assets/ directory
+- Removed unused directories (.kilocode/, .mira/)
+- Removed redundant files (index.md)
+- Fixed workspace dependencies
+- Optimized UI components with custom hooks
+
+### UI Optimization ✅
+
+- Created custom hooks (use-command-history, use-keyboard-input)
+- Extracted UI components (Header, CommandHelp, CommandHistory, CommandInput)
+- Refactored app.tsx with modern React patterns

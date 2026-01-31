@@ -3,11 +3,17 @@ import {
   ConfirmationOptions,
 } from "../utils/confirmation-service";
 import ConfirmationDialog from "./components/confirmation-dialog";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ToolResult } from "../types/index";
-import { Box, Text, useInput } from "ink";
 import { Agent } from "../agent/index";
-import chalk from "chalk";
+import { Box } from "ink";
+
+import { useCommandHistory } from "../hooks/use-command-history";
+import { useKeyboardInput } from "../hooks/use-keyboard-input";
+import { CommandHistory } from "./components/command-history";
+import { CommandInput } from "./components/command-input";
+import { CommandHelp } from "./components/command-help";
+import { Header } from "./components/header";
 
 interface Props {
   agent: Agent;
@@ -15,15 +21,31 @@ interface Props {
 
 export default function App({ agent }: Props) {
   const [input, setInput] = useState("");
-  const [history, setHistory] = useState<
-    Array<{ command: string; result: ToolResult }>
-  >([]);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [confirmationOptions, setConfirmationOptions] =
     useState<ConfirmationOptions | null>(null);
-  // Removed useApp().exit - using process.exit(0) instead for better terminal handling
 
-  const confirmationService = ConfirmationService.getInstance();
+  const confirmationService = useMemo(
+    () => ConfirmationService.getInstance(),
+    [],
+  );
+
+  const { history, isProcessing, setIsProcessing, addEntry } =
+    useCommandHistory();
+
+  const handleSubmit = async (command: string) => {
+    setIsProcessing(true);
+    const result = await agent.processCommand(command);
+    addEntry(command, result);
+    setIsProcessing(false);
+  };
+
+  useKeyboardInput(
+    input,
+    setInput,
+    handleSubmit,
+    isProcessing,
+    confirmationOptions,
+  );
 
   useEffect(() => {
     const handleConfirmationRequest = (options: ConfirmationOptions) => {
@@ -40,70 +62,9 @@ export default function App({ agent }: Props) {
     };
   }, [confirmationService]);
 
-  // Reset confirmation service session on app start
   useEffect(() => {
     confirmationService.resetSession();
-  }, []);
-
-  useInput(async (inputChar: string, key: any) => {
-    // If confirmation dialog is open, don't handle normal input
-    if (confirmationOptions) {
-      return;
-    }
-    if (key.ctrl && inputChar === "c") {
-      process.exit(0);
-    }
-
-    if (key.return) {
-      if (input.trim() === "exit" || input.trim() === "quit") {
-        process.exit(0);
-      }
-
-      if (input.trim()) {
-        setIsProcessing(true);
-        const result = await agent.processCommand(input.trim());
-        setHistory(prev => [...prev, { command: input.trim(), result }]);
-        setInput("");
-        setIsProcessing(false);
-      }
-      return;
-    }
-
-    if (key.backspace || key.delete) {
-      setInput(prev => prev.slice(0, -1));
-      return;
-    }
-
-    if (inputChar && !key.ctrl && !key.meta) {
-      setInput(prev => prev + inputChar);
-    }
-  });
-
-  const renderResult = (result: ToolResult) => {
-    if (result.success) {
-      return (
-        <Box flexDirection="column" marginBottom={1}>
-          <Text color="green">✓ Success</Text>
-          {result.output && (
-            <Box marginLeft={2}>
-              <Text>{result.output}</Text>
-            </Box>
-          )}
-        </Box>
-      );
-    } else {
-      return (
-        <Box flexDirection="column" marginBottom={1}>
-          <Text color="red">✗ Error</Text>
-          {result.error && (
-            <Box marginLeft={2}>
-              <Text color="red">{result.error}</Text>
-            </Box>
-          )}
-        </Box>
-      );
-    }
-  };
+  }, [confirmationService]);
 
   const handleConfirmation = (dontAskAgain?: boolean) => {
     confirmationService.confirmOperation(true, dontAskAgain);
@@ -129,42 +90,10 @@ export default function App({ agent }: Props) {
 
   return (
     <Box flexDirection="column" padding={1}>
-      <Box marginBottom={1}>
-        <Text bold color="cyan">
-          🔧 @involvex/super-agent-cli- Text Editor Agent
-        </Text>
-      </Box>
-
-      <Box flexDirection="column" marginBottom={1}>
-        <Text dimColor>
-          Available commands: view, str_replace, create, insert, undo_edit,
-          bash, help
-        </Text>
-        <Text dimColor>
-          Type 'help' for detailed usage, 'exit' or Ctrl+C to quit
-        </Text>
-      </Box>
-
-      <Box flexDirection="column" marginBottom={1}>
-        {history.slice(-10).map((entry, index) => (
-          <Box key={index} flexDirection="column" marginBottom={1}>
-            <Box>
-              <Text color="blue">$ </Text>
-              <Text>{entry.command}</Text>
-            </Box>
-            {renderResult(entry.result)}
-          </Box>
-        ))}
-      </Box>
-
-      <Box>
-        <Text color="blue">$ </Text>
-        <Text>
-          {input}
-          {!isProcessing && <Text color="white">█</Text>}
-        </Text>
-        {isProcessing && <Text color="yellow"> (processing...)</Text>}
-      </Box>
+      <Header />
+      <CommandHelp />
+      <CommandHistory history={history} />
+      <CommandInput input={input} isProcessing={isProcessing} />
     </Box>
   );
 }

@@ -23,3 +23,14 @@ for (const file of assetsToCopy) {
     console.warn(`Source file not found: ${srcPath}`);
   }
 }
+
+// Copy icon from assets/vscode/
+const iconSrcPath = path.join(__dirname, "..", "assets", "vscode", "icon.svg");
+const iconOutPath = path.join(outDir, "icon.svg");
+
+if (fs.existsSync(iconSrcPath)) {
+  fs.copyFileSync(iconSrcPath, iconOutPath);
+  console.log(`Copied icon.svg to out/`);
+} else {
+  console.warn(`Icon file not found: ${iconSrcPath}`);
+}

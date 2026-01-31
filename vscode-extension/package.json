@@ -31,7 +31,7 @@
       {
         "command": "super-agent.openChat",
         "title": "Open Super Agent Chat",
-        "icon": "assets/icon.svg"
+        "icon": "../assets/vscode/icon.svg"
       },
       {
         "command": "super-agent.mentionFile",
@@ -56,7 +56,7 @@
         {
           "id": "super-agent-sidebar",
           "title": "Super Agent",
-          "icon": "assets/icon.svg"
+          "icon": "../assets/vscode/icon.svg"
         }
       ]
     }
@@ -65,7 +65,7 @@
     "onStartupFinished"
   ],
   "dependencies": {
-    "ws": "^8.18.0"
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.6",
