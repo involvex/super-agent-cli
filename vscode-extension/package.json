@@ -1,0 +1,74 @@
+{
+  "name": "super-agent-vscode",
+  "displayName": "Super Agent AI",
+  "version": "0.0.1",
+  "description": "AI-powered coding assistant with file context from Super Agent CLI",
+  "categories": [
+    "Machine Learning",
+    "Other",
+    "Programming Languages"
+  ],
+  "publisher": "involvex",
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "super-agent.openChat",
+        "title": "Open Super Agent Chat",
+        "icon": "assets/icon.svg"
+      },
+      {
+        "command": "super-agent.mentionFile",
+        "title": "Mention File in Chat"
+      },
+      {
+        "command": "super-agent.askAI",
+        "title": "Ask Super Agent AI"
+      }
+    ],
+    "views": {
+      "super-agent-sidebar": [
+        {
+          "type": "webview",
+          "id": "super-agent.chat",
+          "name": "Chat"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "super-agent-sidebar",
+          "title": "Super Agent",
+          "icon": "assets/icon.svg"
+        }
+      ]
+    }
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "configuration": {
+    "title": "Super Agent",
+    "properties": {
+      "superAgent.cliPort": {
+        "type": "number",
+        "default": 3000,
+        "description": "Port for Super Agent CLI WebSocket server"
+      },
+      "superAgent.cliHost": {
+        "type": "string",
+        "default": "localhost",
+        "description": "Host for Super Agent CLI WebSocket server"
+      },
+      "superAgent.autoConnect": {
+        "type": "boolean",
+        "default": true,
+        "description": "Automatically connect to CLI on startup"
+      }
+    }
+  }
+}

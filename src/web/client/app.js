@@ -62,6 +62,14 @@ function connect() {
   ws.onerror = error => {
     console.error("WebSocket error:", error);
     updateStatus("Connection error", "disconnected");
+    // Check if we're on Firebase Hosting or similar static hosting
+    // Firebase Hosting does NOT support WebSocket connections
+    // Show disconnected mode after connection fails
+    setTimeout(() => {
+      if (!isConnected) {
+        showDisconnectedMode();
+      }
+    }, 2000);
   };
 
   ws.onmessage = event => {
@@ -72,6 +80,59 @@ function connect() {
       console.error("Error parsing message:", error);
     }
   };
+}
+
+/**
+ * Show disconnected mode with helpful instructions
+ * This is shown when the WebSocket connection fails, which happens on
+ * Firebase Hosting and other static hosting providers that don't support WebSocket.
+ */
+function showDisconnectedMode() {
+  isConnected = false;
+  updateStatus("View-only mode - CLI not connected", "disconnected");
+
+  // Check if banner already exists to avoid duplicates
+  const existingBanner = document.querySelector(".disconnected-banner");
+  if (existingBanner) {
+    return;
+  }
+
+  // Show banner explaining the situation
+  const banner = document.createElement("div");
+  banner.className = "disconnected-banner";
+  banner.innerHTML = `
+    <div class="banner-content">
+      <strong>📡 CLI Connection Required</strong>
+      <p>This web interface is in view-only mode. For full functionality:</p>
+      <ol>
+        <li>Run <code>super-agent --web</code> in your project directory</li>
+        <li>Open <a href="http://localhost:3000">http://localhost:3000</a></li>
+      </ol>
+      <p class="note">Note: This web interface on Firebase Hosting is for demonstration only.
+      WebSocket connections are not supported on static hosting platforms.</p>
+      <button class="dismiss-btn">Dismiss</button>
+    </div>
+  `;
+
+  document.body.insertBefore(banner, document.body.firstChild);
+
+  // Add dismiss handler
+  banner.querySelector(".dismiss-btn").addEventListener("click", () => {
+    banner.remove();
+  });
+
+  // Disable interactive elements
+  sendBtn.disabled = true;
+  promptInput.disabled = true;
+  promptInput.placeholder = "Connect to CLI to send messages...";
+
+  // Add a message to the chat
+  addMessage(
+    "⚠️ WebSocket connection failed. This interface is running on a static hosting platform " +
+      "that doesn't support WebSocket connections. Please run 'super-agent --web' locally " +
+      "and connect to http://localhost:3000 for full functionality.",
+    "error",
+  );
 }
 
 // Update status indicator

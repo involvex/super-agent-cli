@@ -4,9 +4,9 @@ import {
   listFilesRecursive,
 } from "../utils/file-utils";
 import { ConfirmationService } from "../utils/confirmation-service";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Key, useEnhancedInput } from "./use-enhanced-input";
 import { ChatEntry, SuperAgent } from "../agent/super-agent";
-import { useEffect, useMemo, useState } from "react";
 import { useInput } from "ink";
 import * as path from "path";
 import * as os from "os";
@@ -14,6 +14,7 @@ import * as os from "os";
 import { filterCommandSuggestions } from "../ui/components/command-suggestions";
 import { loadModelConfig, updateCurrentModel } from "../utils/model-config";
 import { getMCPManager, initializeMCPServers } from "../core/tools";
+import { handleRepositoryCommand } from "../commands/repository";
 import { getSettingsManager } from "../utils/settings-manager";
 import { getChatManager } from "../utils/chat-manager";
 import { getPluginManager } from "../plugins/manager";
@@ -86,6 +87,21 @@ export function useInputHandler({
   // Load files for mentions on mount or periodically
   useEffect(() => {
     listFilesRecursive(process.cwd()).then(setMentionSuggestions);
+  }, []);
+
+  // Helper function to reset all UI states
+  const resetAllUIStates = useCallback(() => {
+    setShowCommandPalette(false);
+    setShowMentionSuggestions(false);
+    setShowProviderSelection(false);
+    setShowModelSelection(false);
+    setShowConfigViewer(false);
+    setShowCommandSuggestions(false);
+    setCommandPaletteQuery("");
+    setSelectedPaletteIndex(0);
+    setSelectedMentionIndex(0);
+    setSelectedCommandIndex(0);
+    setSelectedModelIndex(0);
   }, []);
 
   const handleSpecialKey = async (char: string, key: Key): Promise<boolean> => {
@@ -180,14 +196,20 @@ export function useInputHandler({
       if (key.return) {
         if (filtered.length > 0) {
           const selected = filtered[selectedPaletteIndex];
-          const newInput = input + " @" + selected.path + " ";
+          // Replace entire input with the @mention, not append
+          const newInput = "@" + selected.path + " ";
           setInput(newInput);
           setCursorPosition(newInput.length);
         }
+        // Clear palette state
+        setCommandPaletteQuery("");
+        setSelectedPaletteIndex(0);
         setShowCommandPalette(false);
         return true;
       }
       if (key.escape) {
+        setCommandPaletteQuery("");
+        setSelectedPaletteIndex(0);
         setShowCommandPalette(false);
         return true;
       }
@@ -335,6 +357,7 @@ export function useInputHandler({
             manager.getUserSetting("providers")?.[selectedProviderId]
               ?.api_key || "";
 
+          const commandInput = `/provider set-key ${selectedProviderId} `;
           setChatHistory(prev => [
             ...prev,
             {
@@ -344,8 +367,8 @@ export function useInputHandler({
             },
           ]);
           setShowProviderSelection(false);
-          // Maybe autofill input?
-          setInput(`/provider set-key ${selectedProviderId} `);
+          // Auto-fill input with command and position cursor at end
+          setInput(commandInput, commandInput.length);
         }
         return true;
       }
@@ -484,11 +507,21 @@ export function useInputHandler({
       }
       if (key.tab || key.return) {
         const selected = filtered[selectedMentionIndex];
-        const lastAtIndex = input.lastIndexOf("@");
-        const newInput =
-          input.slice(0, lastAtIndex) + "@" + selected.path + " ";
-        setInput(newInput);
-        setCursorPosition(newInput.length);
+        // Find the @ symbol we're currently completing (most recent one before cursor)
+        const beforeCursor = input.slice(0, cursorPosition);
+        const atMatchIndex = beforeCursor.lastIndexOf("@");
+        if (atMatchIndex !== -1) {
+          // Replace from the @ symbol to the cursor with the selected path
+          const beforeAt = input.slice(0, atMatchIndex);
+          const afterCursor = input.slice(cursorPosition);
+          const newInput = beforeAt + "@" + selected.path + " " + afterCursor;
+          const newCursorPosition = atMatchIndex + selected.path.length + 2; // Position after "@path "
+          setInput(newInput, newCursorPosition);
+        } else {
+          // Fallback: append to end
+          const newInput = input + "@" + selected.path + " ";
+          setInput(newInput, newInput.length);
+        }
         setShowMentionSuggestions(false);
         setSelectedMentionIndex(0);
         return true;
@@ -617,6 +650,26 @@ export function useInputHandler({
       {
         command: "/import <type> <source>",
         description: "Import resources (agents, skills, hooks)",
+      },
+      {
+        command: "/repo",
+        description: "Manage plugin repositories",
+      },
+      {
+        command: "/repo install <type>",
+        description: "Install a plugin repository",
+      },
+      {
+        command: "/repo list",
+        description: "List installed repositories",
+      },
+      {
+        command: "/repo update",
+        description: "Update all repositories",
+      },
+      {
+        command: "/repo enable <name>",
+        description: "Enable a plugin item",
       },
       { command: "/exit", description: "Exit the application" },
     ];
@@ -767,6 +820,15 @@ Custom Commands:
 Git Commands:
   /commit-and-push - AI-generated commit + push to remote
 
+Repository Commands:
+  /repo                - List installed repositories and items
+  /repo available      - List all available builtin repositories
+  /repo install <type> - Install a repository (agents, skills, hooks, mcp)
+  /repo update         - Update all installed repositories
+  /repo enable <name>  - Enable an item from a repository
+  /repo disable <name> - Disable an item from a repository
+  /repo remove <type>  - Remove an installed repository
+
 Enhanced Input Features:
   ↑/↓ Arrow   - Navigate command history
   Ctrl+C      - Clear input (press twice to exit)
@@ -784,6 +846,15 @@ Enhanced Input Features:
 
     if (trimmedInput === "/exit") {
       process.exit(0);
+    }
+
+    // Handle repository commands
+    if (trimmedInput.startsWith("/repo")) {
+      const handled = await handleRepositoryCommand(trimmedInput);
+      if (handled) {
+        clearInput();
+        return true;
+      }
     }
 
     if (trimmedInput === "/doctor") {

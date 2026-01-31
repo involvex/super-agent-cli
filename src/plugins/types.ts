@@ -14,3 +14,22 @@ export interface SuperAgentPlugin {
   onInit?: (context: PluginContext) => Promise<void>;
   onShutdown?: () => Promise<void>;
 }
+
+// Repository types for dynamic plugin system
+export type RepositoryType = "agents" | "skills" | "hooks" | "mcp";
+
+export interface RepositoryConfig {
+  type: RepositoryType;
+  url: string;
+  branch?: string;
+  localPath?: string;
+}
+
+export interface RepositoryItem {
+  name: string;
+  type: RepositoryType;
+  path: string;
+  description?: string;
+  enabled: boolean;
+  config?: any; // Item-specific config from config.json
+}

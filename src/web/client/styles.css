@@ -363,3 +363,82 @@ header h1 {
   background: #f8d7da;
   color: #721c24;
 }
+
+/* Disconnected banner styles */
+.disconnected-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+  border-bottom: 2px solid #ffc107;
+  color: #856404;
+  padding: 20px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.3s ease;
+}
+
+.disconnected-banner .banner-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.disconnected-banner strong {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.disconnected-banner p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.disconnected-banner ol {
+  margin: 10px 0;
+  padding-left: 25px;
+}
+
+.disconnected-banner li {
+  margin: 8px 0;
+}
+
+.disconnected-banner code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.95rem;
+}
+
+.disconnected-banner a {
+  color: #667eea;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.disconnected-banner a:hover {
+  text-decoration: underline;
+}
+
+.disconnected-banner .note {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-top: 12px;
+}
+
+.disconnected-banner .dismiss-btn {
+  float: right;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.disconnected-banner .dismiss-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+}

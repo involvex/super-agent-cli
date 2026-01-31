@@ -1,4 +1,5 @@
 import { createServeCommand, createWebCommand } from "./web";
+import { createRepositoryCommand } from "./repository";
 import { createProviderCommand } from "./provider";
 import { createIndexCommand } from "./index-cmd";
 import { createPluginsCommand } from "./plugins";
@@ -21,4 +22,5 @@ export function registerCommands(program: Command) {
   program.addCommand(createImportCommand());
   program.addCommand(createProviderCommand());
   program.addCommand(createIndexCommand());
+  program.addCommand(createRepositoryCommand());
 }
