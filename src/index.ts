@@ -5,6 +5,7 @@ import { getSettingsManager } from "./utils/settings-manager";
 import ChatInterface from "./ui/components/chat-interface";
 import { SuperAgent } from "./agent/super-agent";
 import { registerCommands } from "./commands";
+import { getLogger } from "./utils/logger";
 import { program } from "commander";
 import pkg from "../package.json";
 import * as dotenv from "dotenv";
@@ -349,6 +350,8 @@ program
     "maximum number of tool execution rounds (default: 400)",
     "400",
   )
+  .option("-r, --resume", "resume last session from current working directory")
+  .option("--debug", "enable debug logging")
   .action(async (message, options) => {
     if (options.directory) {
       try {
@@ -363,11 +366,28 @@ program
     }
 
     try {
+      // Initialize logger with debug mode
+      const logger = getLogger();
+      if (options.debug) {
+        logger.setDebugMode(true);
+        logger.debug("Debug mode enabled");
+      }
+
       // Get API key from options, environment, or user settings
       const apiKey = options.apiKey || loadApiKey();
       const baseURL = options.baseUrl || loadBaseURL();
       const model = options.model || loadModel();
       const maxToolRounds = parseInt(options.maxToolRounds) || 400;
+      const resumeSession = options.resume || false;
+
+      logger.debug("Options:", {
+        apiKey: apiKey ? "***" : undefined,
+        baseURL,
+        model,
+        maxToolRounds,
+        resumeSession,
+        debug: options.debug,
+      });
 
       if (!apiKey && !options.prompt) {
         console.warn(
@@ -431,7 +451,14 @@ program
         ? message.join(" ")
         : message;
 
-      render(React.createElement(ChatInterface, { agent, initialMessage }));
+      render(
+        React.createElement(ChatInterface, {
+          agent,
+          initialMessage,
+          resumeSession,
+          debugMode: options.debug || false,
+        }),
+      );
     } catch (error: any) {
       console.error("❌ Error initializing Super Agent CLI:", error.message);
       process.exit(1);

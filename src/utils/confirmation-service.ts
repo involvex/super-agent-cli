@@ -1,5 +1,6 @@
+import { exec, spawn } from "child_process";
+import { strict as assert } from "assert";
 import { EventEmitter } from "events";
-import { exec } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
@@ -107,13 +108,53 @@ export class ConfirmationService extends EventEmitter {
   }
 
   private async openInVSCode(filename: string): Promise<void> {
-    // Try different VS Code commands
+    // Validate that filename is a string and doesn't contain shell metacharacters
+    assert(typeof filename === "string", "Filename must be a string");
+
+    // Check for dangerous characters that could be used for command injection
+    const dangerousChars = /[;&|`$()<>]/;
+    if (dangerousChars.test(filename)) {
+      throw new Error(
+        "Invalid filename: contains potentially dangerous characters",
+      );
+    }
+
+    // Use spawn with arguments array to avoid shell injection
     const commands = ["code", "code-insiders", "codium"];
 
     for (const cmd of commands) {
       try {
-        await execAsync(`which ${cmd}`);
-        await execAsync(`${cmd} "${filename}"`);
+        // First check if the command exists using spawn with 'which' equivalent
+        await new Promise<void>((resolve, reject) => {
+          const which = spawn("command", ["-v", cmd], { stdio: "ignore" });
+          which.on("close", code => {
+            if (code === 0) {
+              resolve();
+            } else {
+              reject(new Error(`Command ${cmd} not found`));
+            }
+          });
+          which.on("error", reject);
+        });
+
+        // Open the file in VS Code using spawn with arguments array
+        await new Promise<void>((resolve, reject) => {
+          const vscode = spawn(cmd, [filename], {
+            stdio: "ignore",
+            detached: true,
+          });
+          vscode.on("close", code => {
+            if (code === 0) {
+              resolve();
+            } else {
+              reject(new Error(`Failed to open file with ${cmd}`));
+            }
+          });
+          vscode.on("error", reject);
+          // Unref to allow the parent process to exit independently
+          vscode.unref();
+        });
+
         return;
       } catch (error) {
         // Continue to next command

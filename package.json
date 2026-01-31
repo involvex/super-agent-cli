@@ -50,6 +50,11 @@
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix --ignore-pattern dist",
     "start": "node dist/index.js",
     "start:bun": "bun run dist/index.js",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run src/tests/integration",
+    "test:unit": "vitest run src/tests/unit",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -84,6 +89,7 @@
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^9.39.2",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
@@ -92,7 +98,8 @@
     "react-devtools-core": "^7.0.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.54.0"
+    "typescript-eslint": "^8.54.0",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=18.0.0"

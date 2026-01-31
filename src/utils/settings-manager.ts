@@ -111,12 +111,40 @@ export interface UserSettings {
     show_token_usage?: boolean;
     show_context?: boolean;
     showModelInfoInChat?: boolean;
+    show_statusbar?: boolean;
+    statusbar_config?: {
+      show_model?: boolean;
+      show_tool_calls?: boolean;
+      show_git_status?: boolean;
+      show_memory?: boolean;
+      show_cpu?: boolean;
+      show_tokens?: boolean;
+      show_context?: boolean;
+    };
   };
   mcpServers?: Record<string, any>;
   plugins?: string[]; // Array of plugin paths
   tools?: {
     allowed_tools: string[];
     tools: Array<{ name: string; enabled: boolean }>;
+    enable_todo_tool?: boolean;
+    match_precision_on_tool_calls?: boolean;
+  };
+  model_config?: {
+    reasoning_effort?: "low" | "medium" | "high";
+    temperature?: number;
+  };
+  editing?: {
+    enable_diffs?: boolean;
+  };
+  rate_limit?: {
+    enabled?: boolean;
+    min_time_between_requests?: number; // in milliseconds
+    repetition_limit?: number; // max consecutive errors
+  };
+  conversation?: {
+    auto_compact?: boolean;
+    compact_threshold?: number; // number of messages before compacting
   };
   hooks?: Record<string, any>;
   auto_edit?: {
@@ -278,6 +306,38 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
   ui: {
     theme: "dark",
     showModelInfoInChat: true,
+    show_statusbar: false,
+    statusbar_config: {
+      show_model: true,
+      show_tool_calls: true,
+      show_git_status: true,
+      show_memory: false,
+      show_cpu: false,
+      show_tokens: true,
+      show_context: true,
+    },
+  },
+  tools: {
+    allowed_tools: [],
+    tools: [],
+    enable_todo_tool: false,
+    match_precision_on_tool_calls: false,
+  },
+  model_config: {
+    reasoning_effort: "medium",
+    temperature: 0.7,
+  },
+  editing: {
+    enable_diffs: false,
+  },
+  rate_limit: {
+    enabled: false,
+    min_time_between_requests: 1000,
+    repetition_limit: 5,
+  },
+  conversation: {
+    auto_compact: false,
+    compact_threshold: 50,
   },
   settingsVersion: SETTINGS_VERSION,
 };

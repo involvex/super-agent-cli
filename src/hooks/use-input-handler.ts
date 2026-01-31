@@ -696,6 +696,13 @@ Model Commands:
   /models refresh      - Refresh models from provider API
   /models set <id>     - Set active model for current provider
 
+Status Bar Commands:
+  /statusbar           - Toggle status bar visibility
+  /statusbar show      - Show status bar
+  /statusbar hide      - Hide status bar
+  /statusbar config    - Configure status bar items
+  /statusline          - Alias for /statusbar
+
 Config Commands:
   /config              - View current active configuration
   /config get <key>    - Get specific config value
@@ -1055,6 +1062,97 @@ Enhanced Input Features:
           },
         ]);
       }
+      clearInput();
+      return true;
+    }
+
+    // Status bar commands
+    if (
+      trimmedInput === "/statusbar" ||
+      trimmedInput === "/statusline" ||
+      trimmedInput === "/statusbar toggle"
+    ) {
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      const currentStatus = settings.ui.show_statusbar || false;
+
+      settings.ui.show_statusbar = !currentStatus;
+      manager.saveUserSettings(settings);
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: `✅ Status bar ${!currentStatus ? "enabled" : "disabled"}`,
+          timestamp: new Date(),
+        },
+      ]);
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput === "/statusbar show") {
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      settings.ui.show_statusbar = true;
+      manager.saveUserSettings(settings);
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: "✅ Status bar enabled",
+          timestamp: new Date(),
+        },
+      ]);
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput === "/statusbar hide") {
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      settings.ui.show_statusbar = false;
+      manager.saveUserSettings(settings);
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: "✅ Status bar disabled",
+          timestamp: new Date(),
+        },
+      ]);
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput === "/statusbar config") {
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      const config = settings.ui.statusbar_config;
+
+      const configText = `
+Status Bar Configuration:
+  show_model: ${config?.show_model ?? true}
+  show_tool_calls: ${config?.show_tool_calls ?? true}
+  show_git_status: ${config?.show_git_status ?? true}
+  show_memory: ${config?.show_memory ?? false}
+  show_cpu: ${config?.show_cpu ?? false}
+  show_tokens: ${config?.show_tokens ?? true}
+  show_context: ${config?.show_context ?? true}
+
+Use /config set ui.statusbar_config.show_model true to toggle individual items.
+      `.trim();
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: configText,
+          timestamp: new Date(),
+        },
+      ]);
       clearInput();
       return true;
     }

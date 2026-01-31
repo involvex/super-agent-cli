@@ -3,6 +3,7 @@ import {
   ConfirmationService,
 } from "../../utils/confirmation-service";
 import { useInputHandler } from "../../hooks/use-input-handler";
+import { getSessionManager } from "../../utils/session-manager";
 import { ChatEntry, SuperAgent } from "../../agent/super-agent";
 import { MentionSuggestions } from "./mention-suggestions";
 import { CommandSuggestions } from "./command-suggestions";
@@ -12,11 +13,13 @@ import { useEffect, useRef, useState } from "react";
 import { ModelSelection } from "./model-selection";
 import { LoadingSpinner } from "./loading-spinner";
 import { CommandPalette } from "./command-palette";
+import { getLogger } from "../../utils/logger";
 import { ConfigViewer } from "./config-viewer";
 import { ChatHistory } from "./chat-history";
 import ApiKeyInput from "./api-key-input";
 import { MCPStatus } from "./mcp-status";
 import { ChatInput } from "./chat-input";
+import StatusBar from "./statusbar";
 import { Box, Text } from "ink";
 
 import cfonts from "cfonts";
@@ -24,15 +27,21 @@ import cfonts from "cfonts";
 interface ChatInterfaceProps {
   agent?: SuperAgent;
   initialMessage?: string;
+  resumeSession?: boolean;
+  debugMode?: boolean;
 }
 
 // Main chat component that handles input when agent is available
 function ChatInterfaceWithAgent({
   agent,
   initialMessage,
+  resumeSession,
+  debugMode,
 }: {
   agent: SuperAgent;
   initialMessage?: string;
+  resumeSession?: boolean;
+  debugMode?: boolean;
 }) {
   const [chatHistory, setChatHistory] = useState<ChatEntry[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -41,6 +50,8 @@ function ChatInterfaceWithAgent({
   const [isStreaming, setIsStreaming] = useState(false);
   const [confirmationOptions, setConfirmationOptions] =
     useState<ConfirmationOptions | null>(null);
+  const [toolCallsCount, setToolCallsCount] = useState(0);
+  const [showStatusBar, setShowStatusBar] = useState(false);
   const scrollRef = useRef<any>();
   const processingStartTime = useRef<number>(0);
 
@@ -123,8 +134,74 @@ function ChatInterfaceWithAgent({
 
     console.log(" "); // Spacing after logo
 
+    // Initialize logger with debug mode
+    const logger = getLogger();
+    if (debugMode) {
+      logger.setDebugMode(true);
+      logger.debug("Debug mode enabled in ChatInterface");
+    }
+
     setChatHistory([]);
+  }, [debugMode]);
+
+  // Load previous session if resumeSession is enabled
+  useEffect(() => {
+    if (resumeSession) {
+      const logger = getLogger();
+      logger.debug("Resuming previous session...");
+
+      const sessionManager = getSessionManager();
+      const workingDirectory = process.cwd();
+
+      sessionManager
+        .getOrCreateSession(workingDirectory)
+        .then(session => {
+          logger.debug("Session loaded:", session);
+          if (session.messages && session.messages.length > 0) {
+            // Convert session messages to ChatEntry format
+            // Filter out system messages and only keep user/assistant
+            const entries: ChatEntry[] = session.messages
+              .filter(msg => msg.role === "user" || msg.role === "assistant")
+              .map(msg => ({
+                type: msg.role as "user" | "assistant",
+                content: msg.content,
+                timestamp: new Date(msg.timestamp),
+              }));
+            setChatHistory(entries);
+            logger.debug(`Restored ${entries.length} messages from session`);
+          }
+        })
+        .catch(error => {
+          logger.error("Failed to load session:", error);
+        });
+    }
+  }, [resumeSession]);
+
+  // Check if statusbar should be shown based on settings
+  useEffect(() => {
+    const { getSettingsManager } = require("../../utils/settings-manager");
+    const manager = getSettingsManager();
+    const settings = manager.getEffectiveSettings();
+    setShowStatusBar(settings.ui.show_statusbar || false);
   }, []);
+
+  // Track tool calls count
+  useEffect(() => {
+    const count = chatHistory.filter(
+      entry => entry.type === "tool_call" || entry.type === "tool_result",
+    ).length;
+    setToolCallsCount(count);
+  }, [chatHistory]);
+
+  // Auto-scroll to bottom when chat history changes
+  useEffect(() => {
+    if (scrollRef.current && chatHistory.length > 0) {
+      // Force Ink to re-render with new content at the bottom
+      // The key change on the parent Box combined with this ensures proper scrolling
+      const logger = getLogger();
+      logger.debug("Chat history updated, ensuring scroll to bottom");
+    }
+  }, [chatHistory]);
 
   // Process initial message if provided (streaming for faster feedback)
   useEffect(() => {
@@ -315,7 +392,31 @@ function ChatInterfaceWithAgent({
         </Text>
       </Box>
 
-      <Box flexDirection="column" ref={scrollRef}>
+      {/* Status Bar */}
+      {showStatusBar && (
+        <Box marginBottom={1}>
+          <StatusBar
+            currentModel={agent.getCurrentModel()}
+            toolCallsCount={toolCallsCount}
+            isProcessing={isProcessing}
+            tokenCount={tokenCount}
+            contextSize={chatHistory.reduce(
+              (acc, entry) => acc + entry.content.length,
+              0,
+            )}
+          />
+        </Box>
+      )}
+
+      <Box
+        flexDirection="column"
+        ref={scrollRef}
+        key={
+          chatHistory.length > 0
+            ? `chat-history-${chatHistory[chatHistory.length - 1]?.timestamp.getTime()}`
+            : "chat-history-empty"
+        }
+      >
         <ChatHistory
           entries={chatHistory}
           isConfirmationActive={!!confirmationOptions}
@@ -489,6 +590,8 @@ function ChatInterfaceWithAgent({
 export default function ChatInterface({
   agent,
   initialMessage,
+  resumeSession,
+  debugMode,
 }: ChatInterfaceProps) {
   const [currentAgent, setCurrentAgent] = useState<SuperAgent | null>(
     agent || null,
@@ -506,6 +609,8 @@ export default function ChatInterface({
     <ChatInterfaceWithAgent
       agent={currentAgent}
       initialMessage={initialMessage}
+      resumeSession={resumeSession}
+      debugMode={debugMode}
     />
   );
 }
