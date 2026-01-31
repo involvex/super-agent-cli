@@ -74,12 +74,20 @@ export class MockSettingsManager {
   }
 
   getEffectiveSettings(): UserSettings {
-    return { ...this.userSettings, ...this.projectSettings };
+    const user = this.userSettings;
+    const project = this.projectSettings;
+    const mergedProviders = { ...user.providers, ...project.providers };
+    return {
+      ...user,
+      ...project,
+      providers: mergedProviders,
+    };
   }
 
   getActiveProviderConfig(): ProviderConfig | undefined {
-    const active = this.userSettings.active_provider || "grok";
-    return this.userSettings.providers[active];
+    const settings = this.getEffectiveSettings();
+    const active = (settings.active_provider || "grok").toLowerCase();
+    return settings.providers?.[active];
   }
 
   getCurrentModel(): string {

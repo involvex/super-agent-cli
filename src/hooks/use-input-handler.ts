@@ -257,7 +257,7 @@ export function useInputHandler({
 
           try {
             manager.setActiveProvider(selectedProviderId);
-            agent.setProvider(selectedProviderId);
+            await agent.setProvider(selectedProviderId);
             setActiveProvider(selectedProviderId);
 
             // Suggest restart for certain providers
@@ -1294,7 +1294,7 @@ Use /config set ui.statusbar_config.show_model true to toggle individual items.
 
         try {
           manager.setActiveProvider(providerId);
-          agent.setProvider(providerId);
+          await agent.setProvider(providerId);
           setActiveProvider(providerId);
 
           // Suggest restart for certain providers
@@ -1390,7 +1390,7 @@ Use /config set ui.statusbar_config.show_model true to toggle individual items.
         // Reload if active
         if (providerId === activeProvider) {
           try {
-            agent.setProvider(providerId);
+            await agent.setProvider(providerId);
           } catch (e) {}
         }
       } else {
@@ -1519,7 +1519,7 @@ Use /config set ui.statusbar_config.show_model true to toggle individual items.
         // Reload if active
         if (providerId === activeProvider) {
           try {
-            agent.setProvider(providerId);
+            await agent.setProvider(providerId);
           } catch (e) {}
         }
       } else {
@@ -1595,7 +1595,7 @@ Use /config set ui.statusbar_config.show_model true to toggle individual items.
           const newActive = remainingProviders[0];
           manager.setActiveProvider(newActive);
           try {
-            agent.setProvider(newActive);
+            await agent.setProvider(newActive);
           } catch (e) {}
         }
       }

@@ -261,15 +261,6 @@ Current working directory: ${process.cwd()}`,
     const providerConfig = manager.getActiveProviderConfig();
     const providerType = providerConfig?.provider || activeProviderId;
 
-    // Debug logging
-    console.log("setProvider debug:", {
-      providerId,
-      activeProviderId,
-      providerConfig,
-      providerType,
-      effectiveApiKey: providerConfig?.api_key,
-    });
-
     // Validate provider exists
     if (!providerConfig) {
       throw new Error(`Provider '${activeProviderId}' not found in settings`);

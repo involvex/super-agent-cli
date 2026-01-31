@@ -231,8 +231,8 @@ describe("Integration: Agent Workflows", () => {
   });
 
   describe("model and provider switching workflow", () => {
-    it("should switch providers", () => {
-      expect(() => agent.setProvider("grok")).not.toThrow();
+    it("should switch providers", async () => {
+      await expect(agent.setProvider("grok")).resolves.not.toThrow();
     });
 
     it("should switch models", () => {
@@ -246,7 +246,7 @@ describe("Integration: Agent Workflows", () => {
 
     it("should handle provider switch during operation", async () => {
       await agent.processUserMessage("Message before switch");
-      agent.setProvider("grok");
+      await agent.setProvider("grok");
       const response = await agent.processUserMessage("Message after switch");
       expect(Array.isArray(response)).toBe(true);
     });
