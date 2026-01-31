@@ -320,6 +320,139 @@ async function processPromptHeadless(
     process.exit(1);
   }
 }
+async function showAbout() {
+  const cfonts = await import("cfonts");
+
+  // Display logo
+  cfonts.render(pkg.name, {
+    font: "3d",
+    align: "left",
+    colors: ["cyan", "white"],
+    gradient: ["cyan", "white"],
+    env: "node",
+  });
+
+  console.log(`
+     ░█▀▀░█░█░█▀█░█▀▀░█▀▄░░░░░█▀█░█▀▀░█▀▀░█▀█░▀█▀░░░░░█▀▀░█░░░▀█▀
+     ░▀▀█░█░█░█▀▀░█▀▀░█▀▄░▄▄▄░█▀█░█░█░█▀▀░█░█░░█░░▄▄▄░█░░░█░░░░█░
+     ░▀▀▀░▀▀▀░▀░░░▀▀▀░▀░▀░░░░░▀░▀░▀▀▀░▀▀▀░▀░▀░░▀░░░░░░▀▀▀░▀▀▀░▀▀▀
+`);
+  // console.log(`v${pkg.version}\n`);
+
+  // Helper function for consistent padding
+  const pad = (text: string, width: number): string => {
+    return text.padEnd(width, " ");
+  };
+
+  const boxWidth = 95;
+
+  // Header
+  console.log("┌" + "─".repeat(boxWidth - 2) + "┐");
+
+  // Description
+  const desc = pkg.description || "A conversational AI CLI tool";
+  console.log("│" + pad(desc, boxWidth - 2) + "│");
+
+  console.log("├" + "─".repeat(boxWidth - 2) + "┤");
+
+  // Info section
+  console.log(
+    "│ " + pad("Version:", 15) + pad(pkg.version, boxWidth - 20) + " │",
+  );
+
+  const author = pkg.author || "InvolveX";
+  console.log("│ " + pad("Author:", 15) + pad(author, boxWidth - 20) + " │");
+
+  const license = pkg.license || "MIT";
+  console.log("│ " + pad("License:", 15) + pad(license, boxWidth - 20) + " │");
+
+  console.log("├" + "─".repeat(boxWidth - 2) + "┤");
+
+  // Links section
+  console.log(
+    "│ " +
+      pad("Homepage:", 15) +
+      pad(pkg.homepage || "N/A", boxWidth - 20) +
+      " │",
+  );
+
+  const repoUrl = pkg.repository?.url || pkg.homepage || "N/A";
+  console.log(
+    "│ " + pad("Repository:", 15) + pad(repoUrl, boxWidth - 20) + " │",
+  );
+
+  const sponsorUrl = pkg.sponsor?.url || "N/A";
+  console.log(
+    "│ " + pad("Sponsor:", 15) + pad(sponsorUrl, boxWidth - 20) + " │",
+  );
+
+  // Bugs
+  const bugsUrl = (pkg as any).bugs?.url || "N/A";
+  console.log("│ " + pad("Bugs:", 15) + pad(bugsUrl, boxWidth - 20) + " │");
+
+  console.log("├" + "─".repeat(boxWidth - 2) + "┤");
+
+  // Requirements
+  console.log("│ " + pad("Requirements:", boxWidth - 2) + " │");
+  const engines = Object.entries(pkg.engines || {});
+  if (engines.length > 0) {
+    engines.forEach(([k, v]) => {
+      console.log(
+        "│   " + pad(`${k}:`, 12) + pad(String(v), boxWidth - 22) + " │",
+      );
+    });
+  } else {
+    console.log("│   N/A" + " ".repeat(boxWidth - 8) + "│");
+  }
+
+  console.log("├" + "─".repeat(boxWidth - 2) + "┤");
+
+  // Keywords
+  const keywords = (pkg.keywords || []).join(", ") || "N/A";
+  // Wrap keywords if too long
+  const wrappedKeywords =
+    keywords.length > boxWidth - 12
+      ? keywords.substring(0, boxWidth - 15) + "..."
+      : keywords;
+  console.log(
+    "│ " + pad("Keywords:", 15) + pad(wrappedKeywords, boxWidth - 20) + " │",
+  );
+
+  console.log("├" + "─".repeat(boxWidth - 2) + "┤");
+
+  // Workspaces
+  console.log("│ " + pad("Workspaces:", boxWidth - 2) + " │");
+  const workspaces = pkg.workspaces || [];
+  if (workspaces.length > 0) {
+    workspaces.forEach(ws => {
+      console.log("│   " + pad(ws, boxWidth - 6) + "│");
+    });
+  } else {
+    console.log("│   N/A" + " ".repeat(boxWidth - 8) + "│");
+  }
+
+  console.log("├" + "─".repeat(boxWidth - 2) + "┤");
+
+  // Commands
+  console.log("│ " + pad("Commands:", boxWidth - 2) + " │");
+  const bins = Object.entries(pkg.bin || {});
+  if (bins.length > 0) {
+    bins.forEach(([k, v]) => {
+      console.log(
+        "│   " + pad(`${k}:`, 12) + pad(String(v), boxWidth - 22) + " │",
+      );
+    });
+  } else {
+    console.log("│   N/A" + " ".repeat(boxWidth - 8) + "│");
+  }
+
+  // Footer
+  console.log("└" + "─".repeat(boxWidth - 2) + "┘");
+
+  console.log(`\nRun '${pkg.name} --help' for usage information.\n`);
+
+  process.exit(0);
+}
 
 program
   .name("super-agent")
@@ -352,7 +485,14 @@ program
   )
   .option("-r, --resume", "resume last session from current working directory")
   .option("--debug", "enable debug logging")
+  .option("--about", "show information about " + pkg.name)
   .action(async (message, options) => {
+    // Handle --about flag
+    if (options.about) {
+      await showAbout();
+      return;
+    }
+
     if (options.directory) {
       try {
         process.chdir(options.directory);
@@ -467,7 +607,5 @@ program
 
 // Register modular commands
 registerCommands(program);
-
-program.parse();
 
 program.parse();

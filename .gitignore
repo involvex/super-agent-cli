@@ -111,3 +111,5 @@ temp/
 @plugins/.env
 @plugins/.env.local
 tsc_output.txt
+
+.hintrc
