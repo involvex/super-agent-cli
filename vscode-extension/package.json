@@ -21,7 +21,7 @@
     "compile": "tsc -p ./",
     "copy-assets": "node build.js",
     "lint": "eslint src --ext ts",
-    "package": "vsce package",
+    "package": "vsce package --no-dependencies",
     "typecheck": "tsc --noEmit",
     "vscode:prepublish": "npm run compile && npm run copy-assets",
     "watch": "tsc -w -p ./"
@@ -31,7 +31,7 @@
       {
         "command": "super-agent.openChat",
         "title": "Open Super Agent Chat",
-        "icon": "out/icon.svg"
+        "icon": "icon.png"
       },
       {
         "command": "super-agent.mentionFile",
@@ -47,7 +47,8 @@
         {
           "type": "webview",
           "id": "super-agent.chat",
-          "name": "Chat"
+          "name": "Chat",
+          "icon": "icon.png"
         }
       ]
     },
@@ -56,7 +57,7 @@
         {
           "id": "super-agent-sidebar",
           "title": "Super Agent",
-          "icon": "out/icon.svg"
+          "icon": "icon.png"
         }
       ]
     }
@@ -77,7 +78,7 @@
   "engines": {
     "vscode": "^1.80.0"
   },
-  "icon": "out/icon.svg",
+  "icon": "icon.png",
   "configuration": {
     "title": "Super Agent",
     "properties": {

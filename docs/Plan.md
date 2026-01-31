@@ -58,7 +58,7 @@ Build a Agentic Coding Cli Tool using Bun. Support multiple LLMs like Grok, GPT,
 - Implemented chat webview with file context mentions
 - Added WebSocket connector to CLI
 - Created file context provider for @mentions
-- Fixed icon property and asset consolidation
+- Fixed icon property - using PNG format (icon.png) for VS Code marketplace compatibility
 
 ### WebSocket Graceful Degradation ✅
 
@@ -71,11 +71,12 @@ Build a Agentic Coding Cli Tool using Bun. Support multiple LLMs like Grok, GPT,
 - Reorganized documentation into docs/ directory
 - Consolidated assets into assets/ directory with subdirectories:
   - `assets/images/` - banner.png, favicon.png, logo.png
-  - `assets/vscode/` - VS Code extension icon.svg
+  - `assets/vscode/` - icon.svg (kept for reference)
 - Removed unused directories (.kilocode/, .mira/)
 - Removed redundant files (index.md)
 - Fixed workspace dependencies
 - Optimized UI components with custom hooks
+- VS Code extension uses icon.png (copied from assets/images/logo.png)
 
 ### UI Optimization ✅
 
