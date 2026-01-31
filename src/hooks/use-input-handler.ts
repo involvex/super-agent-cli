@@ -581,6 +581,10 @@ export function useInputHandler({
     const baseCommands: CommandSuggestion[] = [
       { command: "/help", description: "Show help information" },
       { command: "/clear", description: "Clear chat history" },
+      {
+        command: "/init",
+        description: "Create Agents.md for project instructions",
+      },
       { command: "/doctor", description: "Check status & connection" },
       { command: "/models", description: "Switch Super Agent Model" },
       { command: "/config", description: "View or edit configuration" },
@@ -714,6 +718,7 @@ Built-in Commands:
   /clear      - Clear chat history
   /help       - Show this help
   /doctor     - Check system health & connection
+  /init       - Create Agents.md for project-specific AI instructions
   /exit       - Exit application
   exit, quit  - Exit application
 
@@ -1187,6 +1192,79 @@ Enhanced Input Features:
             {
               type: "assistant",
               content: `❌ Image generation failed: ${error.message}`,
+              timestamp: new Date(),
+            },
+          ]);
+        }
+      })();
+
+      clearInput();
+      return true;
+    }
+
+    // Init command - Create Agents.md file
+    if (trimmedInput === "/init") {
+      (async () => {
+        try {
+          const { createAgentsMd, agentsMdExists } =
+            await import("../utils/agents-md");
+
+          // Check if Agents.md already exists
+          const exists = await agentsMdExists();
+
+          if (exists) {
+            setChatHistory(prev => [
+              ...prev,
+              {
+                type: "assistant",
+                content: `ℹ️ Agents.md already exists in the current directory.
+
+To recreate it, delete the existing file first and run /init again.`,
+                timestamp: new Date(),
+              },
+            ]);
+            return;
+          }
+
+          // Create Agents.md with default template
+          const result = await createAgentsMd({
+            projectName: path.basename(process.cwd()),
+          });
+
+          if (result.success) {
+            setChatHistory(prev => [
+              ...prev,
+              {
+                type: "assistant",
+                content: `✅ Created Agents.md at ${result.path}
+
+This file contains project-specific instructions for the AI agent.
+Edit it to add:
+- Project overview and tech stack
+- Coding conventions and standards
+- Preferred patterns and libraries
+- Any specific instructions for the AI agent
+
+The AI agent will read this file when assisting with your project.`,
+                timestamp: new Date(),
+              },
+            ]);
+          } else {
+            setChatHistory(prev => [
+              ...prev,
+              {
+                type: "assistant",
+                content: `❌ ${result.error}`,
+                timestamp: new Date(),
+              },
+            ]);
+          }
+        } catch (error: any) {
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `❌ Failed to create Agents.md: ${error.message}`,
               timestamp: new Date(),
             },
           ]);
