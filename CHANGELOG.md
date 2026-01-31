@@ -1,3 +1,13 @@
+## [0.0.76](https://github.com/involvex/super-agent-cli/compare/v0.0.75...v0.0.76) (2026-01-31)
+
+### Features
+
+- **agent:** improve provider switching with validation and error handling ([b1f8de7](https://github.com/involvex/super-agent-cli/commit/b1f8de75ce7851e09a0d90b2115b6216173b5f74))
+
+### BREAKING CHANGES
+
+- **agent:** setProvider is now async and returns Promise<void>
+
 ## [0.0.75](https://github.com/involvex/super-agent-cli/compare/v0.0.74...v0.0.75) (2026-01-31)
 
 ## [0.0.74](https://github.com/involvex/super-agent-cli/compare/v0.0.73...v0.0.74) (2026-01-31)
