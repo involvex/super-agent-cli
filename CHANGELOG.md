@@ -1,3 +1,10 @@
+## [0.0.73](https://github.com/involvex/super-agent-cli/compare/v0.0.72...v0.0.73) (2026-01-31)
+
+### Features
+
+- **cli:** add about command to display package information ([cbe20e6](https://github.com/involvex/super-agent-cli/commit/cbe20e62720102b7e2fd8beed853f8c931b3bdd6))
+- **ui:** add password hashing to diff key generation ([8314d99](https://github.com/involvex/super-agent-cli/commit/8314d990c244bbfd7336436ef8d444c6f176eaf0))
+
 ## [0.0.72](https://github.com/involvex/super-agent-cli/compare/v0.0.71...v0.0.72) (2026-01-31)
 
 ### Features
