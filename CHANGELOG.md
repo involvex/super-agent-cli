@@ -1,3 +1,9 @@
+## [0.0.81](https://github.com/involvex/super-agent-cli/compare/v0.0.80...v0.0.81) (2026-01-31)
+
+### Bug Fixes
+
+- **build:** add bun wrapper script and fix vscode extension packaging ([7c13c0b](https://github.com/involvex/super-agent-cli/commit/7c13c0b41d85d67fe6aa602cb092117d5a2e4983))
+
 ## [0.0.80](https://github.com/involvex/super-agent-cli/compare/v0.0.79...v0.0.80) (2026-01-31)
 
 ### Bug Fixes
