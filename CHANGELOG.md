@@ -1,3 +1,15 @@
+## [0.0.77](https://github.com/involvex/super-agent-cli/compare/v0.0.76...v0.0.77) (2026-01-31)
+
+### Bug Fixes
+
+- **agent:** correct async provider switching and settings resolution ([c3fc74a](https://github.com/involvex/super-agent-cli/commit/c3fc74a765f552376da3c5db06c70af24ea7f4c0))
+
+### Features
+
+- **firebase:** add web asset build pipeline for hosting ([2272a37](https://github.com/involvex/super-agent-cli/commit/2272a370c92bc2da328fa986be638d0c46fe0da0))
+- **firebase:** setup firebase hosting and firestore ([b9889b8](https://github.com/involvex/super-agent-cli/commit/b9889b8cdf64aaf8d5a51d6e48f216d3f40a2c78))
+- **image-generation:** add image generation providers and configuration ([e3e2459](https://github.com/involvex/super-agent-cli/commit/e3e2459ec13d50ee90ce86b41a6bee89ba18ef55))
+
 ## [0.0.76](https://github.com/involvex/super-agent-cli/compare/v0.0.75...v0.0.76) (2026-01-31)
 
 ### Features
