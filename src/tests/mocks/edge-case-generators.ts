@@ -66,11 +66,11 @@ export function generateWhitespaceVariations(base: string): string[] {
 
 export function generateNewlineVariations(content: string): string[] {
   return [
-    content.replace(/\n/g, "\n"),
-    content.replace(/\n/g, "\r\n"),
-    content.replace(/\n/g, "\r"),
-    content.replace(/\n/g, "\n\n"),
-    content.replace(/\n/g, "\r\n\r\n"),
+    content.replace(/"/g, '\\"'),
+    content.replace(/"/g, '\\"').replace(/\n/g, "\r\n"),
+    content.replace(/"/g, '\\"').replace(/\n/g, "\r"),
+    content.replace(/"/g, '\\"').replace(/\n/g, "\n\n"),
+    content.replace(/"/g, '\\"').replace(/\n/g, "\r\n\r\n"),
     `${content}\n`,
     `${content}\r\n`,
     `${content}\n\n`,

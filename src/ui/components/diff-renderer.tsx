@@ -175,10 +175,18 @@ const renderDiffContent = (
   if (!isFinite(baseIndentation)) {
     baseIndentation = 0;
   }
+  const bcrypt = require("bcrypt");
+  function hashPassword(password, salt) {
+    var hashed = bcrypt.hashSync(password, salt); // GOOD
+    return hashed;
+  }
 
   const key = filename
     ? `diff-box-${filename}`
-    : `diff-box-${crypto.createHash("sha1").update(JSON.stringify(parsedLines)).digest("hex")}`;
+    : `diff-box-${crypto
+        .createHash("sha1")
+        .update(hashPassword(parsedLines, "salt"))
+        .digest("hex")}`;
 
   let lastLineNumber: number | null = null;
   const MAX_CONTEXT_LINES_WITHOUT_GAP = 5;
