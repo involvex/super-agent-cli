@@ -144,6 +144,34 @@ Or specify a working directory:
 super-agent -d /path/to/project
 ```
 
+### Interactive Features
+
+Super Agent CLI provides several interactive features to enhance your workflow:
+
+- **Shell Mode**: Press `shift+!` to toggle shell mode for direct command execution
+- **Agent Modes**: Press `shift+tab` to cycle through modes (plan, code, debug)
+- **Command Palette**: Press `ctrl+p` to open a quick command palette
+- **Auto-Edit Toggle**: Press `ctrl+y` to toggle auto-edit mode
+- **Configurable Hotkeys**: All hotkeys can be customized in settings
+- **File Mentions**: Reference files using `@filename` in your prompts
+- **Folder Mentions**: Reference entire folders using `@folder` in your prompts
+
+Start the conversational AI assistant:
+
+```bash
+super-agent
+# or
+super-agent about
+# or
+super-agent plugins list
+```
+
+Or specify a working directory:
+
+```bash
+super-agent -d /path/to/project
+```
+
 ### Headless Mode
 
 Process a single prompt and exit (useful for scripting and automation):
@@ -223,6 +251,119 @@ Commands:
   serve                                      Start both TUI and web interfaces
 ```
 
+**Note**: In addition to these command-line commands, all slash commands (e.g., `/init`, `/config`, `/models`, `/chat`, `/plugin`, `/help`) are available in interactive mode. See the [Command Reference](#command-reference) section for a complete list of available slash commands.
+
+### Web Interface
+
+Super Agent CLI provides a web interface for a more visual and accessible experience.
+
+#### Starting the Web Interface
+
+```bash
+# Start only the web interface
+super-agent web
+
+# Start both the TUI (terminal UI) and web interfaces
+super-agent serve
+```
+
+#### Web Interface Features
+
+The web interface offers:
+
+- **Modern Browser-Based UI**: Access the AI assistant through any modern web browser
+- **Real-Time Chat**: Engage in conversational AI interactions with streaming responses
+- **File Explorer**: Browse and manage project files visually
+- **Tool Visualization**: See tools being used in real-time with detailed output
+- **Chat History**: View and manage conversation history
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **Multi-Session Support**: Run multiple sessions simultaneously
+- **Persistent Connection**: Maintains connection state across interactions
+
+The web interface provides all the functionality of the TUI with the added convenience of a graphical interface, making it easier to visualize file operations, tool usage, and complex workflows.
+
+### Command Reference
+
+Super Agent CLI provides a comprehensive set of commands to manage your AI assistant sessions.
+
+#### Project Setup
+
+```bash
+/init           # Create AGENTS.md in project root with template instructions
+```
+
+#### Configuration
+
+```bash
+/config         # Configure API keys, models, base URLs, and other settings
+```
+
+#### Model Management
+
+```bash
+/models                    # List all available models
+/models <model>            # Switch to a specific model
+/models <model> <prompt>   # Switch to a model and immediately run a prompt
+```
+
+#### Chat Management
+
+```bash
+/chat                       # Show current chat information
+/chat save <chat_name>      # Save the current chat
+/chat load <chat_name>      # Load a saved chat
+/chat list                  # List all saved chats
+/chat delete <chat_name>    # Delete a saved chat
+/chat clear                 # Clear the current chat history
+```
+
+#### Plugin Management
+
+```bash
+/plugin install <plugin_name>    # Install a plugin from GitHub, local path, or file
+/plugin list                    # List all installed plugins
+/plugin delete <plugin_name>     # Delete an installed plugin
+```
+
+#### MCP Tools
+
+```bash
+/mcp add <name> [options]    # Add a new MCP server
+/mcp list                    # List all configured MCP servers
+/mcp test <name>             # Test a MCP server connection
+/mcp remove <name>           # Remove a MCP server
+```
+
+#### General Commands
+
+```bash
+/help           # Show help information and available commands
+/clear          # Clear the current chat history
+/exit           # Exit the CLI
+```
+
+#### Usage Examples
+
+```bash
+# Initialize project with agent instructions
+/init
+
+# Switch to Gemini Flash and run a prompt
+/models gemini-2.5-flash "explain this codebase"
+
+# Save current chat session
+/chat save feature-development
+
+# Load a previous chat session
+/chat load feature-development
+
+# Install a plugin from GitHub
+/plugin install involvex/super-agent-cli-plugins
+
+# Configure API settings
+/config
+```
+
 ### Plugin System
 
 Extend Super Agent with custom tools and capabilities through plugins.
@@ -274,20 +415,28 @@ See the [official plugin repository](https://github.com/involvex/super-agent-cli
 
 ### Custom Instructions
 
-You can provide custom instructions to tailor Super Agent's behavior to your project or globally. Super Agent CLI supports both project-level and global custom instructions.
+You can provide custom instructions to tailor Super Agent's behavior to your project or globally. Super Agent CLI reads agent and skill configurations from multiple locations.
 
-#### Project-Level Instructions
+#### Agent Instructions (AGENTS.md)
 
-Create a `.super-agent/SUPER_AGENT.md` file in your project directory to provide instructions specific to that project:
+Super Agent CLI reads agent instructions from these locations, in order of priority:
+
+1. `AGENTS.md` in project root - highest priority
+2. `.super-agent/AGENTS.md` in project directory
+3. `.super-agent/agents/*.md` - individual agent files
+4. `~/.super-agent/AGENTS.md` in home directory
+5. `~/.super-agent/agents/*.md` - global agent files
+
+Create project-specific agent instructions:
 
 ```bash
-mkdir .super-agent
+mkdir -p .super-agent
 ```
 
-Create `.super-agent/SUPER_AGENT.md` with your project-specific instructions:
+Create `.super-agent/AGENTS.md` with your project-specific instructions:
 
 ```markdown
-# Custom Instructions for This Project
+# Custom Agent Instructions for This Project
 
 Always use TypeScript for any new code files.
 When creating React components, use functional components with hooks.
@@ -296,18 +445,28 @@ Always add JSDoc comments for public functions and interfaces.
 Follow the existing code style and patterns in this project.
 ```
 
+#### Skill Instructions (SKILLS.md)
+
+Skill configurations follow the same priority order:
+
+1. `SKILLS.md` in project root - highest priority
+2. `.super-agent/SKILLS.md` in project directory
+3. `.super-agent/skills/*.md` - individual skill files
+4. `~/.super-agent/SKILLS.md` in home directory
+5. `~/.super-agent/skills/*.md` - global skill files
+
 #### Global Instructions
 
-For instructions that apply across all projects, create `~/.super-agent/SUPER_AGENT.md` in your home directory:
+For instructions that apply across all projects, create `~/.super-agent/AGENTS.md` in your home directory:
 
 ```bash
 mkdir -p ~/.super-agent
 ```
 
-Create `~/.super-agent/SUPER_AGENT.md` with your global instructions:
+Create `~/.super-agent/AGENTS.md` with your global instructions:
 
 ```markdown
-# Global Custom Instructions for Super Agent CLI
+# Global Agent Instructions for Super Agent CLI
 
 Always prioritize code readability and maintainability.
 Use descriptive variable names and add comments for complex logic.
@@ -319,10 +478,11 @@ When suggesting code changes, consider performance implications.
 
 Super Agent will load custom instructions in the following priority order:
 
-1. **Project-level** (`.super-agent/SUPER_AGENT.md` in current directory) - takes highest priority
-2. **Global** (`~/.super-agent/SUPER_AGENT.md` in home directory) - fallback if no project instructions exist
+1. **Project-level files** take highest priority
+2. **Global files** serve as fallback if no project instructions exist
+3. **Individual files** (`*.md`) are merged into a single instruction set
 
-If both files exist, project instructions will be used. If neither exists, Super Agent operates with its default behavior.
+If multiple files exist, they are combined with project instructions taking precedence. If neither exists, Super Agent operates with its default behavior.
 
 The custom instructions are added to Super Agent's system prompt and influence its responses across all interactions in the respective context.
 

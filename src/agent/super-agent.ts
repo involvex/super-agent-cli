@@ -16,9 +16,13 @@ import { OpenAICompatibleProvider } from "../core/providers/openai-compatible";
 import { LLMMessage, LLMProvider, LLMToolCall } from "../core/llm-provider";
 import { createTokenCounter, TokenCounter } from "../utils/token-counter";
 import { loadCustomInstructions } from "../utils/custom-instructions";
+import { PerplexityProvider } from "../core/providers/perplexity";
+import { AnthropicProvider } from "../core/providers/anthropic";
 import { getSettingsManager } from "../utils/settings-manager";
+import { TogetherProvider } from "../core/providers/together";
 import { OpenAIProvider } from "../core/providers/openai";
 import { GeminiProvider } from "../core/providers/gemini";
+import { CohereProvider } from "../core/providers/cohere";
 import { GrokProvider } from "../core/providers/grok";
 import { getFileIndexer } from "../indexing/indexer";
 import { loadMCPConfig } from "../mcp/config";
@@ -109,6 +113,30 @@ export class SuperAgent extends EventEmitter {
       );
     } else if (providerType === "grok") {
       this.superAgentClient = new GrokProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else if (providerType === "anthropic" || providerType === "claude") {
+      this.superAgentClient = new AnthropicProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else if (providerType === "together") {
+      this.superAgentClient = new TogetherProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else if (providerType === "perplexity") {
+      this.superAgentClient = new PerplexityProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else if (providerType === "cohere") {
+      this.superAgentClient = new CohereProvider(
         effectiveApiKey,
         effectiveBaseURL,
         effectiveModel,
@@ -920,6 +948,29 @@ Current working directory: ${process.cwd()}`,
    */
   public getCurrentModel(): string {
     return this.superAgentClient.getCurrentModel();
+  }
+
+  /**
+   * Fetch available models from the current provider's API
+   * This uses the provider's listModels() method with caching
+   */
+  public async fetchAvailableModels(
+    forceRefresh: boolean = false,
+  ): Promise<string[]> {
+    const manager = getSettingsManager();
+    const currentProviderId = this.superAgentClient.name;
+
+    try {
+      const models = await manager.fetchModelsForProvider(
+        currentProviderId,
+        forceRefresh,
+        this.superAgentClient,
+      );
+      return models;
+    } catch (error) {
+      // If fetching fails, return the hardcoded list as fallback
+      return manager.getAvailableModels(currentProviderId);
+    }
   }
 
   /**

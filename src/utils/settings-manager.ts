@@ -26,9 +26,15 @@ export const PROVIDER_MODELS: Record<string, string[]> = {
   ],
   gemini: [
     "gemini-2.0-flash",
-    "gemini-2.0-pro-exp-02-05", // hypothetical future/current
+    "gemini-2.0-pro-exp-02-05",
     "gemini-1.5-pro",
     "gemini-1.5-flash",
+  ],
+  anthropic: [
+    "claude-sonnet-4-20250514",
+    "claude-opus-4-20250514",
+    "claude-3.5-sonnet-20241022",
+    "claude-3-haiku-20241022",
   ],
   mistral: ["mistral-large-latest", "mistral-small-latest", "codestral-latest"],
   openrouter: [
@@ -45,7 +51,7 @@ export const PROVIDER_MODELS: Record<string, string[]> = {
     "mixtral-8x7b-32768",
   ],
   deepseek: ["deepseek-chat", "deepseek-coder"],
-  ollama: ["llama3", "mistral", "codellama"], // local, dynamic but hardcoded start
+  ollama: ["llama3", "mistral", "codellama"],
   "workers-ai": ["@cf/meta/llama-3.1-70b-instruct"],
   zai: [
     "GLM-4.7",
@@ -56,6 +62,32 @@ export const PROVIDER_MODELS: Record<string, string[]> = {
     "GLM-4.5-X",
     "GLM-4.5v",
     "GLM-4.6",
+  ],
+  together: [
+    "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
+    "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
+    "meta-llama/Llama-3.1-405B-Instruct-Turbo",
+    "meta-llama/Llama-3.1-70B-Instruct-Turbo",
+    "meta-llama/Llama-3.1-8B-Instruct-Turbo",
+    "mistralai/Mixtral-8x7B-Instruct-v0.1",
+    "Qwen/Qwen2.5-72B-Instruct",
+  ],
+  perplexity: [
+    "llama-3.1-sonnet-small-128k-online",
+    "llama-3.1-sonnet-large-128k-online",
+    "llama-3.1-sonnet-huge-128k-online",
+    "llama-3.1-8b-online",
+    "llama-3.1-70b-online",
+    "mixtral-8x7b-online",
+  ],
+  cohere: [
+    "command-r-plus-08-2024",
+    "command-r-08-2024",
+    "command-r7b-12-2024",
+    "command",
+    "command-light",
+    "c4ai-aya-expanse-8b",
+    "c4ai-aya-13b",
   ],
 };
 
@@ -210,6 +242,38 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
       base_url: "https://api.z.ai/api/coding/paas/v4/",
       default_model: "GLM-4.7",
     },
+    anthropic: {
+      id: "anthropic",
+      provider: "anthropic",
+      model: "claude-sonnet-4-20250514",
+      api_key: "",
+      base_url: "https://api.anthropic.com",
+      default_model: "claude-sonnet-4-20250514",
+    },
+    together: {
+      id: "together",
+      provider: "together",
+      model: "meta-llama/Llama-3.1-70B-Instruct-Turbo",
+      api_key: "",
+      base_url: "https://api.together.xyz/v1",
+      default_model: "meta-llama/Llama-3.1-70B-Instruct-Turbo",
+    },
+    perplexity: {
+      id: "perplexity",
+      provider: "perplexity",
+      model: "llama-3.1-sonnet-small-128k-online",
+      api_key: "",
+      base_url: "https://api.perplexity.ai",
+      default_model: "llama-3.1-sonnet-small-128k-online",
+    },
+    cohere: {
+      id: "cohere",
+      provider: "cohere",
+      model: "command-r-plus-08-2024",
+      api_key: "",
+      base_url: "https://api.cohere.ai/v1",
+      default_model: "command-r-plus-08-2024",
+    },
   },
   ui: {
     theme: "dark",
@@ -220,10 +284,29 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
 
 const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {};
 
+// Model cache file path
+const MODELS_CACHE_PATH = path.join(
+  os.homedir(),
+  ".super-agent",
+  "models-cache.json",
+);
+
+interface ModelsCacheEntry {
+  models: string[];
+  timestamp: number;
+  ttl: number; // Time to live in milliseconds
+}
+
+interface ModelsCache {
+  [providerId: string]: ModelsCacheEntry;
+}
+
 export class SettingsManager {
   private static instance: SettingsManager;
   private userSettingsPath: string;
   private projectSettingsPath: string;
+  private modelsCachePath: string;
+  private inMemoryCache: Map<string, string[]> = new Map();
 
   private constructor() {
     this.userSettingsPath = path.join(
@@ -236,6 +319,7 @@ export class SettingsManager {
       ".super-agent",
       "settings.json",
     );
+    this.modelsCachePath = MODELS_CACHE_PATH;
   }
 
   public getStorageDirectory(): string {
@@ -366,7 +450,7 @@ export class SettingsManager {
 
   // --- Helper Methods using Active Provider ---
 
-  private getEffectiveSettings(): UserSettings {
+  public getEffectiveSettings(): UserSettings {
     const user = this.loadUserSettings();
     const project = this.loadProjectSettings();
     // Deep merge could be better, but for now simple spread (project overrides user)
@@ -385,12 +469,50 @@ export class SettingsManager {
   }
 
   public setCurrentModel(model: string): void {
-    const settings = this.loadUserSettings();
-    const active = (settings.active_provider || "grok").toLowerCase();
-    if (settings.providers && settings.providers[active]) {
-      settings.providers[active].model = model;
-      this.saveUserSettings(settings);
+    // Update user settings
+    const userSettings = this.loadUserSettings();
+    const active = (userSettings.active_provider || "grok").toLowerCase();
+    if (userSettings.providers && userSettings.providers[active]) {
+      userSettings.providers[active].model = model;
+      this.saveUserSettings(userSettings);
     }
+
+    // Also update project settings to ensure persistence across restarts
+    // Project settings override user settings, so we need to update both
+    const projectSettings = this.loadProjectSettings();
+    if (projectSettings.providers && projectSettings.providers[active]) {
+      projectSettings.providers[active].model = model;
+      this.saveProjectSettings(projectSettings);
+    } else if (projectSettings.providers) {
+      // If provider doesn't exist in project settings, add it
+      projectSettings.providers[active] = {
+        ...userSettings.providers[active],
+        model,
+      };
+      this.saveProjectSettings(projectSettings);
+    } else {
+      // Create providers object in project settings
+      this.saveProjectSettings({
+        providers: {
+          [active]: {
+            ...userSettings.providers[active],
+            model,
+          },
+        },
+      });
+    }
+  }
+
+  public setActiveProvider(providerId: string): void {
+    // Update user settings
+    const userSettings = this.loadUserSettings();
+    userSettings.active_provider = providerId.toLowerCase();
+    this.saveUserSettings(userSettings);
+
+    // Also update project settings to ensure persistence across restarts
+    const projectSettings = this.loadProjectSettings();
+    projectSettings.active_provider = providerId.toLowerCase();
+    this.saveProjectSettings(projectSettings);
   }
 
   public getAvailableModels(providerId?: string): string[] {
@@ -445,6 +567,110 @@ export class SettingsManager {
     }
     const config = this.getActiveProviderConfig();
     return config?.base_url || undefined;
+  }
+
+  // --- Dynamic Model Fetching ---
+
+  private loadModelsCache(): ModelsCache {
+    try {
+      if (fs.existsSync(this.modelsCachePath)) {
+        const content = fs.readFileSync(this.modelsCachePath, "utf-8");
+        return JSON.parse(content);
+      }
+    } catch (error) {
+      // Ignore cache errors
+    }
+    return {};
+  }
+
+  private saveModelsCache(cache: ModelsCache): void {
+    try {
+      this.ensureDirectoryExists(this.modelsCachePath);
+      fs.writeFileSync(this.modelsCachePath, JSON.stringify(cache, null, 2));
+    } catch (error) {
+      // Ignore cache save errors
+    }
+  }
+
+  /**
+   * Fetch models for a provider from the API
+   * @param providerId The provider ID
+   * @param forceRefresh If true, bypass cache and fetch from API
+   * @param providerClient Optional pre-configured provider client to use for fetching
+   * @returns Promise<string[]> List of model IDs
+   */
+  public async fetchModelsForProvider(
+    providerId: string,
+    forceRefresh: boolean = false,
+    providerClient?: { listModels(): Promise<string[]> },
+  ): Promise<string[]> {
+    const normalizedProviderId = providerId.toLowerCase();
+
+    // Check in-memory cache first
+    if (!forceRefresh && this.inMemoryCache.has(normalizedProviderId)) {
+      return this.inMemoryCache.get(normalizedProviderId)!;
+    }
+
+    // Check disk cache
+    if (!forceRefresh) {
+      const cache = this.loadModelsCache();
+      const entry = cache[normalizedProviderId];
+      const now = Date.now();
+      if (entry && now - entry.timestamp < entry.ttl) {
+        // Cache is still valid
+        this.inMemoryCache.set(normalizedProviderId, entry.models);
+        return entry.models;
+      }
+    }
+
+    // Fetch from API using the provided client or create a temporary one
+    let models: string[] = [];
+
+    if (providerClient) {
+      try {
+        models = await providerClient.listModels();
+      } catch (error) {
+        // Silently fall back to hardcoded list
+      }
+    } else {
+      // If no client provided, we'll use the hardcoded list as fallback
+      // The actual fetching should be done at the agent level where we have provider instances
+    }
+
+    // If API fetch failed or returned empty, use hardcoded list
+    if (models.length === 0) {
+      models = this.getAvailableModels(providerId);
+    }
+
+    // Update caches
+    this.inMemoryCache.set(normalizedProviderId, models);
+
+    const cache = this.loadModelsCache();
+    cache[normalizedProviderId] = {
+      models,
+      timestamp: Date.now(),
+      ttl: 24 * 60 * 60 * 1000, // 24 hours
+    };
+    this.saveModelsCache(cache);
+
+    return models;
+  }
+
+  /**
+   * Clear the model cache for a specific provider or all providers
+   */
+  public clearModelsCache(providerId?: string): void {
+    if (providerId) {
+      this.inMemoryCache.delete(providerId.toLowerCase());
+      const cache = this.loadModelsCache();
+      delete cache[providerId.toLowerCase()];
+      this.saveModelsCache(cache);
+    } else {
+      this.inMemoryCache.clear();
+      if (fs.existsSync(this.modelsCachePath)) {
+        fs.unlinkSync(this.modelsCachePath);
+      }
+    }
   }
 }
 

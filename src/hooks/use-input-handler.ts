@@ -8,6 +8,8 @@ import { Key, useEnhancedInput } from "./use-enhanced-input";
 import { ChatEntry, SuperAgent } from "../agent/super-agent";
 import { useEffect, useMemo, useState } from "react";
 import { useInput } from "ink";
+import * as path from "path";
+import * as os from "os";
 
 import { filterCommandSuggestions } from "../ui/components/command-suggestions";
 import { loadModelConfig, updateCurrentModel } from "../utils/model-config";
@@ -234,7 +236,7 @@ export function useInputHandler({
       if (key.return || key.tab) {
         if (providers.length > 0) {
           const selectedProviderId = providers[selectedProviderIndex];
-          manager.updateUserSetting("active_provider", selectedProviderId);
+          manager.setActiveProvider(selectedProviderId);
 
           // Update agent with new provider
           try {
@@ -600,18 +602,24 @@ export function useInputHandler({
   // Load models from configuration with fallback to defaults
   // Also try to fetch dynamic models from the agent
   const [dynamicModels, setDynamicModels] = useState<string[]>([]);
+  const [isFetchingModels, setIsFetchingModels] = useState(false);
 
   useEffect(() => {
     // Fetch models when active provider changes
     let mounted = true;
     const fetchModels = async () => {
       try {
-        const models = await agent.listModels();
+        setIsFetchingModels(true);
+        const models = await agent.fetchAvailableModels();
         if (mounted && models.length > 0) {
           setDynamicModels(models);
         }
       } catch (e) {
         // ignore
+      } finally {
+        if (mounted) {
+          setIsFetchingModels(false);
+        }
       }
     };
     fetchModels();
@@ -669,12 +677,36 @@ Built-in Commands:
   /clear      - Clear chat history
   /help       - Show this help
   /doctor     - Check system health & connection
-  /models     - Switch between available models
-  /config     - View current configuration
-  /provider   - List or switch AI providers
-  /commands   - Manage custom slash commands
   /exit       - Exit application
   exit, quit  - Exit application
+
+Provider Commands:
+  /provider              - Show provider selection UI
+  /provider list         - List all configured providers
+  /provider info <id>    - Show detailed provider info
+  /provider use <id>     - Switch active AI provider
+  /provider set-key <id> <key>   - Set API key for provider
+  /provider set-url <id> <url>   - Set base URL for provider
+  /provider set-account <id> <acc_id> - Set account ID (e.g. workers-ai)
+  /provider remove <id>  - Remove a provider
+
+Model Commands:
+  /models              - Show model selection UI
+  /models list         - List all available models
+  /models refresh      - Refresh models from provider API
+  /models set <id>     - Set active model for current provider
+
+Config Commands:
+  /config              - View current active configuration
+  /config get <key>    - Get specific config value
+  /config set <k> <v>  - Set config value
+  /config reset        - Reset settings to defaults
+
+Custom Commands:
+  /commands            - Manage custom slash commands
+  /commands add <name> <prompt>    - Add custom command
+  /commands remove <name>         - Remove custom command
+  /commands list                 - List custom commands
 
 Git Commands:
   /commit-and-push - AI-generated commit + push to remote
@@ -683,14 +715,9 @@ Enhanced Input Features:
   ↑/↓ Arrow   - Navigate command history
   Ctrl+C      - Clear input (press twice to exit)
   Ctrl+K      - Delete to end of line
-  Shift+Tab   - Toggle auto-edit mode (bypass confirmations)
-
-Config Commands:
-  /config             - View current active configuration
-  /provider           - List configured providers
-  /provider use <id>  - Switch active AI provider
-  /provider set-account <id> <acc_id> - Set account ID (e.g. workers-ai)
-  /model set <id>     - Set active model for current provider
+  Shift+Tab   - Toggle agent mode (plan/code/debug)
+  Ctrl+Y      - Toggle YOLO mode (auto-edit)
+  Ctrl+P      - Open command palette
 `,
         timestamp: new Date(),
       };
@@ -872,6 +899,166 @@ Config Commands:
       return true;
     }
 
+    if (trimmedInput.startsWith("/config get ")) {
+      const key = trimmedInput.replace("/config get ", "").trim();
+      const manager = getSettingsManager();
+      const settings = manager.getEffectiveSettings();
+
+      if (!key) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: "❌ Usage: /config get <key>",
+            timestamp: new Date(),
+          },
+        ]);
+        clearInput();
+        return true;
+      }
+
+      // Support nested keys like "providers.grok.model"
+      const keys = key.split(".");
+      let value: any = settings;
+      for (const k of keys) {
+        value = value?.[k];
+      }
+
+      if (value === undefined) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `❌ Key '${key}' not found in settings.`,
+            timestamp: new Date(),
+          },
+        ]);
+      } else {
+        const displayValue =
+          typeof value === "object"
+            ? JSON.stringify(value, null, 2)
+            : String(value);
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `${key}:\n${displayValue}`,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput.startsWith("/config set ")) {
+      const parts = trimmedInput.replace("/config set ", "").trim().split(" ");
+      const key = parts[0];
+      const value = parts.slice(1).join(" ");
+
+      if (!key || value === undefined) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: "❌ Usage: /config set <key> <value>",
+            timestamp: new Date(),
+          },
+        ]);
+        clearInput();
+        return true;
+      }
+
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+
+      // Support nested keys like "providers.grok.model"
+      const keys = key.split(".");
+      if (keys.length === 1) {
+        // Simple key
+        try {
+          // Try to parse as JSON for objects/arrays
+          const parsedValue =
+            value.startsWith("{") || value.startsWith("[")
+              ? JSON.parse(value)
+              : value;
+          (settings as any)[key] = parsedValue;
+          manager.saveUserSettings(settings);
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `✅ Set ${key} = ${value}`,
+              timestamp: new Date(),
+            },
+          ]);
+        } catch (e) {
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "assistant",
+              content: `❌ Failed to parse value. Use JSON format for objects/arrays.`,
+              timestamp: new Date(),
+            },
+          ]);
+        }
+      } else {
+        // Nested key - simplified implementation for common cases
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content:
+              "❌ Nested key setting not yet supported. Use specific commands like /provider set-url",
+            timestamp: new Date(),
+          },
+        ]);
+      }
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput === "/config reset") {
+      const manager = getSettingsManager();
+      const userSettingsPath = path.join(
+        os.homedir(),
+        ".super-agent",
+        "settings.json",
+      );
+
+      try {
+        // Backup current settings
+        const backupPath = userSettingsPath + ".backup";
+        if (fs.existsSync(userSettingsPath)) {
+          fs.copyFileSync(userSettingsPath, backupPath);
+        }
+
+        // Clear settings to trigger re-creation with defaults
+        fs.unlinkSync(userSettingsPath);
+
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content:
+              "✅ Settings reset to defaults. Backup saved to settings.json.backup",
+            timestamp: new Date(),
+          },
+        ]);
+      } catch (error: any) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `❌ Failed to reset settings: ${error.message}`,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+      clearInput();
+      return true;
+    }
+
     if (trimmedInput === "/provider") {
       setShowProviderSelection(true);
       setSelectedProviderIndex(0);
@@ -955,7 +1142,7 @@ Config Commands:
       const settings = manager.loadUserSettings();
 
       if (settings.providers && settings.providers[providerId]) {
-        manager.updateUserSetting("active_provider", providerId);
+        manager.setActiveProvider(providerId);
 
         try {
           // Update agent configuration
@@ -1054,6 +1241,211 @@ Config Commands:
       return true;
     }
 
+    if (trimmedInput === "/provider list" || trimmedInput === "/provider ls") {
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      const activeProvider = settings.active_provider;
+
+      let output = "Configured providers:\n";
+      Object.keys(settings.providers).forEach(id => {
+        const provider = settings.providers[id];
+        const isActive = id === activeProvider ? "★ " : "  ";
+        const hasKey = provider.api_key ? "✓" : "✗";
+        output += `${isActive}${id} (${provider.provider}) - ${hasKey} API Key - ${provider.model}\n`;
+      });
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: output,
+          timestamp: new Date(),
+        },
+      ]);
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput.startsWith("/provider info ")) {
+      const providerId = trimmedInput.replace("/provider info ", "").trim();
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+
+      if (!settings.providers || !settings.providers[providerId]) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `❌ Provider '${providerId}' not found.`,
+            timestamp: new Date(),
+          },
+        ]);
+        clearInput();
+        return true;
+      }
+
+      const provider = settings.providers[providerId];
+      const isActive = providerId === settings.active_provider ? "Yes ★" : "No";
+
+      let output = `Provider: ${providerId}\n`;
+      output += `Type: ${provider.provider}\n`;
+      output += `Active: ${isActive}\n`;
+      output += `Model: ${provider.model}\n`;
+      output += `Default Model: ${provider.default_model || "N/A"}\n`;
+      output += `Base URL: ${provider.base_url || "Default"}\n`;
+      output += `API Key: ${provider.api_key ? "Set (******)" : "Not set"}\n`;
+      if (provider.account_id) {
+        output += `Account ID: ${provider.account_id}\n`;
+      }
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: output,
+          timestamp: new Date(),
+        },
+      ]);
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput.startsWith("/provider set-url ")) {
+      const args = trimmedInput
+        .replace("/provider set-url ", "")
+        .trim()
+        .split(" ");
+      const providerId = args[0];
+      const url = args.slice(1).join(" "); // Allow spaces in URLs
+
+      if (!providerId || !url) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: "❌ Usage: /provider set-url <provider> <base_url>",
+            timestamp: new Date(),
+          },
+        ]);
+        clearInput();
+        return true;
+      }
+
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      if (settings.providers && settings.providers[providerId]) {
+        const newProviders = { ...settings.providers };
+        newProviders[providerId] = {
+          ...newProviders[providerId],
+          base_url: url,
+        };
+        manager.updateUserSetting("providers", newProviders);
+
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `✅ Base URL for ${providerId} updated to: ${url}`,
+            timestamp: new Date(),
+          },
+        ]);
+
+        // Reload if active
+        if (providerId === activeProvider) {
+          try {
+            agent.setProvider(providerId);
+          } catch (e) {}
+        }
+      } else {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `❌ Provider '${providerId}' not found.`,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput.startsWith("/provider remove ")) {
+      const providerId = trimmedInput.replace("/provider remove ", "").trim();
+
+      if (!providerId) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: "❌ Usage: /provider remove <provider_id>",
+            timestamp: new Date(),
+          },
+        ]);
+        clearInput();
+        return true;
+      }
+
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+
+      if (!settings.providers || !settings.providers[providerId]) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `❌ Provider '${providerId}' not found.`,
+            timestamp: new Date(),
+          },
+        ]);
+        clearInput();
+        return true;
+      }
+
+      // Don't allow removing the active provider if it's the only one
+      const providerCount = Object.keys(settings.providers).length;
+      if (providerId === settings.active_provider && providerCount <= 1) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content:
+              "❌ Cannot remove the only provider. Add another provider first.",
+            timestamp: new Date(),
+          },
+        ]);
+        clearInput();
+        return true;
+      }
+
+      const newProviders = { ...settings.providers };
+      delete newProviders[providerId];
+      manager.updateUserSetting("providers", newProviders);
+
+      // If we removed the active provider, switch to another one
+      if (providerId === settings.active_provider) {
+        const remainingProviders = Object.keys(newProviders);
+        if (remainingProviders.length > 0) {
+          const newActive = remainingProviders[0];
+          manager.setActiveProvider(newActive);
+          try {
+            agent.setProvider(newActive);
+          } catch (e) {}
+        }
+      }
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: `✅ Provider '${providerId}' removed.`,
+          timestamp: new Date(),
+        },
+      ]);
+      clearInput();
+      return true;
+    }
+
     if (trimmedInput.startsWith("/model set ")) {
       const modelId = trimmedInput.replace("/model set ", "").trim();
       if (modelId) {
@@ -1103,6 +1495,67 @@ Available models: ${modelNames.join(", ")}`,
         setChatHistory(prev => [...prev, errorEntry]);
       }
 
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput === "/models list" || trimmedInput === "/models ls") {
+      const modelNames = availableModels.map(m => m.model);
+      const manager = getSettingsManager();
+      const currentModel = manager.getCurrentModel();
+
+      let output = "Available models:\n";
+      modelNames.forEach(model => {
+        const prefix = model === currentModel ? "★ " : "  ";
+        output += `${prefix}${model}\n`;
+      });
+      output += `\nTotal: ${modelNames.length} models`;
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: output,
+          timestamp: new Date(),
+        },
+      ]);
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput === "/models refresh" || trimmedInput === "/models r") {
+      setIsProcessing(true);
+      const refreshEntry: ChatEntry = {
+        type: "assistant",
+        content: "🔄 Refreshing models from provider API...",
+        timestamp: new Date(),
+      };
+      setChatHistory(prev => [...prev, refreshEntry]);
+
+      try {
+        const models = await agent.fetchAvailableModels(true);
+        setDynamicModels(models);
+
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `✓ Refreshed ${models.length} models from provider API`,
+            timestamp: new Date(),
+          },
+        ]);
+      } catch (error: any) {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `❌ Failed to refresh models: ${error.message}`,
+            timestamp: new Date(),
+          },
+        ]);
+      } finally {
+        setIsProcessing(false);
+      }
       clearInput();
       return true;
     }

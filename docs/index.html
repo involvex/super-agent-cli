@@ -80,6 +80,7 @@
           <a href="#installation" class="nav-link">Installation</a>
           <a href="#usage" class="nav-link">Usage</a>
           <a href="#configuration" class="nav-link">Configuration</a>
+          <a href="#web-interface" class="nav-link">Web Interface</a>
           <a href="#mcp" class="nav-link">MCP Tools</a>
           <a href="#api" class="nav-link">Command Reference</a>
           <a href="#contributing" class="nav-link">Contributing</a>
@@ -387,6 +388,119 @@
                 Bun and npm.
               </p>
             </article>
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M4 17l6-6-6-6M12 19h8" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Shell Mode (shift+!)</h3>
+              <p class="feature-description">
+                Execute shell commands directly from chat mode with instant
+                feedback.
+              </p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M9 3v18M15 3v18" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Agent Modes (shift+tab)</h3>
+              <p class="feature-description">
+                Switch between plan, code, and debug modes for specialized
+                assistance.
+              </p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Command Palette (ctrl+p)</h3>
+              <p class="feature-description">
+                Quick access to all commands and actions with keyboard search.
+              </p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Auto-Edit Toggle (ctrl+y)</h3>
+              <p class="feature-description">
+                Toggle automatic file editing on/off for controlled code
+                changes.
+              </p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="M7 15h0M11 15h0M15 15h0" />
+                </svg>
+              </div>
+              <h3 class="feature-title">Configurable Hotkeys</h3>
+              <p class="feature-description">
+                Customize all keyboard shortcuts to match your workflow
+                preferences.
+              </p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+                  />
+                  <circle cx="12" cy="12" r="2" />
+                </svg>
+              </div>
+              <h3 class="feature-title">File/Folder Mentions</h3>
+              <p class="feature-description">
+                Reference files with @filename or @folder for instant context
+                access.
+              </p>
+            </article>
           </div>
         </div>
       </section>
@@ -657,6 +771,85 @@ super-agent --prompt "run tests" --directory /path/to/project</code></pre>
               </table>
             </div>
           </div>
+
+          <div class="command-reference">
+            <h3 class="subsection-title">Slash Commands</h3>
+            <p class="subsection-description">
+              Execute these commands directly in the chat interface.
+            </p>
+            <div class="table-wrapper">
+              <table class="options-table">
+                <thead>
+                  <tr>
+                    <th>Command</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>/init</code></td>
+                    <td>Create AGENTS.md file in project directory</td>
+                  </tr>
+                  <tr>
+                    <td><code>/config</code></td>
+                    <td>Configure API keys, models, and settings</td>
+                  </tr>
+                  <tr>
+                    <td><code>/help</code></td>
+                    <td>Show help information</td>
+                  </tr>
+                  <tr>
+                    <td><code>/exit</code></td>
+                    <td>Exit CLI application</td>
+                  </tr>
+                  <tr>
+                    <td><code>/clear</code></td>
+                    <td>Clear chat history</td>
+                  </tr>
+                  <tr>
+                    <td><code>/models</code></td>
+                    <td>List available AI models</td>
+                  </tr>
+                  <tr>
+                    <td><code>/models &lt;model&gt;</code></td>
+                    <td>Switch to specified AI model</td>
+                  </tr>
+                  <tr>
+                    <td><code>/chat save</code></td>
+                    <td>Save current chat session</td>
+                  </tr>
+                  <tr>
+                    <td><code>/chat load</code></td>
+                    <td>Load a saved chat session</td>
+                  </tr>
+                  <tr>
+                    <td><code>/chat list</code></td>
+                    <td>List all saved chat sessions</td>
+                  </tr>
+                  <tr>
+                    <td><code>/chat delete</code></td>
+                    <td>Delete a saved chat session</td>
+                  </tr>
+                  <tr>
+                    <td><code>/chat manage</code></td>
+                    <td>Manage chat sessions</td>
+                  </tr>
+                  <tr>
+                    <td><code>/plugin install</code></td>
+                    <td>Install a plugin</td>
+                  </tr>
+                  <tr>
+                    <td><code>/plugin list</code></td>
+                    <td>List all installed plugins</td>
+                  </tr>
+                  <tr>
+                    <td><code>/plugin delete</code></td>
+                    <td>Delete/uninstall a plugin</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -873,6 +1066,44 @@ super-agent --prompt "run tests" --directory /path/to/project</code></pre>
             </div>
           </div>
 
+          <div class="custom-instructions">
+            <h3 class="subsection-title">Custom Instructions</h3>
+            <p class="subsection-description">
+              Define agent behaviors and skills with AGENTS.md and SKILLS.md
+              files. Multiple locations are supported with priority ordering:
+            </p>
+            <div class="table-wrapper">
+              <table class="options-table">
+                <thead>
+                  <tr>
+                    <th>Level</th>
+                    <th>Locations</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Project-Level</strong></td>
+                    <td>
+                      <code>AGENTS.md</code>,<br />
+                      <code>.super-agent/AGENTS.md</code>,<br />
+                      <code>.super-agent/agents/*.md</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>User-Level</strong></td>
+                    <td>
+                      <code>~/.super-agent/AGENTS.md</code>,<br />
+                      <code>~/.super-agent/agents/*.md</code>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="subsection-description">
+              <em>Same file locations apply for SKILLS.md files.</em>
+            </p>
+          </div>
+
           <div class="priority-note">
             <h4>Priority Order</h4>
             <ol>
@@ -922,6 +1153,98 @@ super-agent --prompt "run tests" --directory /path/to/project</code></pre>
                 <code>Provider ID: openrouter</code>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Web Interface Section -->
+      <section id="web-interface" class="section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Web Interface</h2>
+            <p class="section-description">
+              Access Super Agent CLI through a web browser while maintaining TUI
+              functionality.
+            </p>
+          </div>
+
+          <div class="usage-grid">
+            <div class="usage-card">
+              <h3 class="usage-title">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path
+                    d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                  />
+                </svg>
+                /web Command
+              </h3>
+              <p class="usage-description">
+                Launch web interface for browser-based access. Perfect for
+                sharing sessions or working on larger screens.
+              </p>
+              <div class="code-block">
+                <pre><code class="language-bash">super-agent /web</code></pre>
+              </div>
+            </div>
+
+            <div class="usage-card">
+              <h3 class="usage-title">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                  />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+                /serve Command
+              </h3>
+              <p class="usage-description">
+                Host the web interface on a custom port for remote access or
+                team collaboration.
+              </p>
+              <div class="code-block">
+                <pre><code class="language-bash">super-agent /serve --port 3000</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="feature-list">
+            <h3 class="subsection-title">Web Interface Features</h3>
+            <ul>
+              <li>
+                <strong>Simultaneous TUI + Web:</strong> Use both terminal and
+                browser interfaces at the same time
+              </li>
+              <li>
+                <strong>Rich Chat Experience:</strong> Better formatting, syntax
+                highlighting, and file previews
+              </li>
+              <li>
+                <strong>Real-time Sync:</strong> Actions in web interface sync
+                with terminal and vice versa
+              </li>
+              <li>
+                <strong>Accessibility:</strong> Browser accessibility features
+                for better usability
+              </li>
+              <li>
+                <strong>Session Sharing:</strong> Share web interface URL for
+                collaboration (with auth)
+              </li>
+            </ul>
           </div>
         </div>
       </section>
@@ -1038,6 +1361,46 @@ super-agent git commit-and-push --max-tool-rounds 30  # Git commands</code></pre
                   in automated environments
                 </li>
               </ul>
+            </div>
+          </div>
+
+          <div class="api-section">
+            <h3 class="subsection-title">Keyboard Shortcuts</h3>
+            <div class="table-wrapper">
+              <table class="options-table">
+                <thead>
+                  <tr>
+                    <th>Shortcut</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>shift+!</code></td>
+                    <td>Enter Shell Mode</td>
+                  </tr>
+                  <tr>
+                    <td><code>shift+tab</code></td>
+                    <td>Cycle through Agent Modes (plan/code/debug)</td>
+                  </tr>
+                  <tr>
+                    <td><code>ctrl+p</code></td>
+                    <td>Open Command Palette</td>
+                  </tr>
+                  <tr>
+                    <td><code>ctrl+y</code></td>
+                    <td>Toggle Auto-Edit</td>
+                  </tr>
+                  <tr>
+                    <td><code>ctrl+c</code></td>
+                    <td>Cancel current operation</td>
+                  </tr>
+                  <tr>
+                    <td><code>ctrl+d</code></td>
+                    <td>Exit CLI</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -1280,6 +1643,7 @@ bun run typecheck</code></pre>
                 <li><a href="#installation">Installation</a></li>
                 <li><a href="#usage">Usage</a></li>
                 <li><a href="#configuration">Configuration</a></li>
+                <li><a href="#web-interface">Web Interface</a></li>
               </ul>
             </div>
             <div class="footer-column">
