@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
       - run: bun i && bun run build:web && bun run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
