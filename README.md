@@ -1,6 +1,8 @@
 # @involvex/super-agent-cli
 
 ![Super Agent CLI Banner](docs/banner.png)
+[![Security Scan](https://github.com/involvex/super-agent-cli/actions/workflows/security.yml/badge.svg)](https://github.com/involvex/super-agent-cli/actions/workflows/security.yml)
+![Badge](https://img.shields.io/npm/v/@involvex/super-agent-cli?label=build&message=passing&color=brightgreen&style=social&logo=npm)
 
 A conversational AI CLI tool powered by Super Agent with intelligent text editor capabilities and tool usage.
 
