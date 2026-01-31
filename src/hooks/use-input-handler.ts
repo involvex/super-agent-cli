@@ -88,7 +88,7 @@ export function useInputHandler({
     listFilesRecursive(process.cwd()).then(setMentionSuggestions);
   }, []);
 
-  const handleSpecialKey = (char: string, key: Key): boolean => {
+  const handleSpecialKey = async (char: string, key: Key): Promise<boolean> => {
     // Don't handle input if confirmation dialog is active
     if (isConfirmationActive) {
       return true; // Prevent default handling
@@ -565,8 +565,8 @@ export function useInputHandler({
   });
 
   // Hook up the actual input handling
-  useInput((inputChar: string, key: Key) => {
-    if (handleSpecialKey(inputChar, key)) {
+  useInput(async (inputChar: string, key: Key) => {
+    if (await handleSpecialKey(inputChar, key)) {
       return;
     }
     handleInput(inputChar, key);
