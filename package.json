@@ -80,7 +80,8 @@
     "react": "^19.2.4",
     "ripgrep-node": "^1.0.0",
     "tiktoken": "^1.0.22",
-    "ws": "^8.19.0"
+    "ws": "^8.19.0",
+    "shell-quote": "^1.8.3"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
