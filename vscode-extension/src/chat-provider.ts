@@ -109,7 +109,7 @@ export class ChatProvider {
         const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
         const absolutePath = require("path").join(workspaceRoot, filePath);
         const fileMention =
-          this.fileContextProvider.getFileMention(absolutePath);
+          await this.fileContextProvider.getFileMention(absolutePath);
         if (fileMention) {
           fileContexts.push(fileMention);
         }
@@ -125,8 +125,8 @@ export class ChatProvider {
   }
 
   private async handleGetFileContext(): Promise<void> {
-    const currentFile = this.fileContextProvider.getCurrentFileMention();
-    const openFiles = this.fileContextProvider.getOpenFileMentions();
+    const currentFile = await this.fileContextProvider.getCurrentFileMention();
+    const openFiles = await this.fileContextProvider.getOpenFileMentions();
 
     this.postMessageToWebview({
       type: "fileContext",
@@ -196,10 +196,10 @@ export class ChatProvider {
 
   private getHtmlContent(webview: vscode.Webview): string {
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, "out", "chat.js"),
+      vscode.Uri.file(this.extensionUri.path + "/out/chat.js"),
     );
     const styleUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, "out", "chat.css"),
+      vscode.Uri.file(this.extensionUri.path + "/out/chat.css"),
     );
 
     return `<!DOCTYPE html>

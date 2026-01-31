@@ -1,0 +1,39 @@
+# Source files
+src/
+*.ts
+!**/out/**/*.js
+tsconfig.json
+
+# Build files
+build.js
+bun.lock
+bun.lockb
+
+# Config files
+.eslintrc*
+.prettierrc*
+.eslintrc.json
+.prettierignore
+
+# Development files
+.vscode/
+.vscode-test/
+
+# Git files
+.git*
+.gitignore
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+test/
+tests/
+
+# Documentation
+CHANGELOG.md
+docs/
+
+# Lock files (ws dependency will be bundled automatically)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

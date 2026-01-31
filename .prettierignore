@@ -9,3 +9,5 @@ node_modules
 .turbo
 /*/*/dist
 build
+vscode-extension/out
+vscode-extension/node_modules

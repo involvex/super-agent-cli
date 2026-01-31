@@ -8,8 +8,24 @@
     "Other",
     "Programming Languages"
   ],
+  "homepage": "https://involvex.github.io/super-agent-cli/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/involvex/super-agent-cli.git"
+  },
+  "license": "MIT",
   "publisher": "involvex",
   "main": "./out/extension.js",
+  "scripts": {
+    "build": "npm run compile && npm run copy-assets",
+    "compile": "tsc -p ./",
+    "copy-assets": "node build.js",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package",
+    "typecheck": "tsc --noEmit",
+    "vscode:prepublish": "npm run compile && npm run copy-assets",
+    "watch": "tsc -w -p ./"
+  },
   "contributes": {
     "commands": [
       {
@@ -48,6 +64,16 @@
   "activationEvents": [
     "onStartupFinished"
   ],
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.6",
+    "@types/vscode": "^1.80.0",
+    "@types/ws": "^8.5.13",
+    "@vscode/vsce": "^3.2.1",
+    "typescript": "^5.7.2"
+  },
   "engines": {
     "vscode": "^1.80.0"
   },

@@ -9,10 +9,10 @@ if (!fs.existsSync(outDir)) {
   fs.mkdirSync(outDir, { recursive: true });
 }
 
-// Copy CSS and TypeScript files
-const filesToCopy = ["chat.css", "chat.ts"];
+// Copy webview assets (these are plain JS/CSS files that run in the browser)
+const assetsToCopy = ["chat.js", "chat.css"];
 
-for (const file of filesToCopy) {
+for (const file of assetsToCopy) {
   const srcPath = path.join(srcDir, file);
   const outPath = path.join(outDir, file);
 
@@ -20,6 +20,6 @@ for (const file of filesToCopy) {
     fs.copyFileSync(srcPath, outPath);
     console.log(`Copied ${file} to out/`);
   } else {
-    console.error(`Source file not found: ${srcPath}`);
+    console.warn(`Source file not found: ${srcPath}`);
   }
 }

@@ -10,6 +10,7 @@ export default [
       "@plugins/templates/*/dist/*.js",
       "@plugins/examples/*/dist/*.js.map",
       "@plugins/templates/*/dist/*.js.map",
+      "vscode-extension/out/**",
     ],
   },
   {

@@ -51,7 +51,7 @@ export class FileContextProvider {
   /**
    * Get file content as a mention object
    */
-  getFileMention(filePath: string): FileMention | undefined {
+  async getFileMention(filePath: string): Promise<FileMention | undefined> {
     try {
       const uri = vscode.Uri.file(filePath);
       const document = vscode.workspace.textDocuments.find(
@@ -68,7 +68,7 @@ export class FileContextProvider {
         };
       } else {
         // Read file from disk
-        const content = vscode.workspace.fs.readFileSync(uri);
+        const content = await vscode.workspace.fs.readFile(uri);
         return {
           path: filePath,
           relativePath: this.getRelativePath(filePath),
@@ -85,10 +85,10 @@ export class FileContextProvider {
   /**
    * Get the current file mention for the active editor
    */
-  getCurrentFileMention(): FileMention | undefined {
+  async getCurrentFileMention(): Promise<FileMention | undefined> {
     const filePath = this.getActiveFilePath();
     if (filePath) {
-      return this.getFileMention(filePath);
+      return await this.getFileMention(filePath);
     }
     return undefined;
   }
@@ -96,12 +96,12 @@ export class FileContextProvider {
   /**
    * Get all open file mentions
    */
-  getOpenFileMentions(): FileMention[] {
+  async getOpenFileMentions(): Promise<FileMention[]> {
     const mentions: FileMention[] = [];
 
     for (const document of vscode.workspace.textDocuments) {
       if (document.uri.scheme === "file") {
-        const mention = this.getFileMention(document.uri.fsPath);
+        const mention = await this.getFileMention(document.uri.fsPath);
         if (mention) {
           mentions.push(mention);
         }
@@ -189,7 +189,7 @@ export class FileContextProvider {
         filePath = path.join(this.workspaceRoot, filePath);
       }
 
-      const fileMention = this.getFileMention(filePath);
+      const fileMention = await this.getFileMention(filePath);
       if (fileMention && fileMention.content !== undefined) {
         const placeholder = `\n--- File: ${fileMention.relativePath} ---\n${fileMention.content}\n--- End of ${fileMention.relativePath} ---\n`;
         expandedInput = expandedInput.replace(`@${mention}`, placeholder);

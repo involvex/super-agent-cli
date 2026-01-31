@@ -1,40 +1,42 @@
 // Chat webview script
-interface Message {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  timestamp: Date;
-  fileContexts?: any[];
-}
+// This runs in the browser context of the webview
+const vscode = acquireVsCodeApi();
 
-let messages: Message[] = [];
+let messages = [];
 let isConnected = false;
 
 // Initialize
 window.addEventListener("load", () => {
-  const promptInput = document.getElementById("prompt") as HTMLInputElement;
-  const sendButton = document.getElementById("send") as HTMLButtonElement;
-  const abortButton = document.getElementById("abort") as HTMLButtonElement;
-  const mentionButton = document.getElementById(
-    "mentionCurrent",
-  ) as HTMLButtonElement;
+  const promptInput = document.getElementById("prompt");
+  const sendButton = document.getElementById("send");
+  const abortButton = document.getElementById("abort");
+  const mentionButton = document.getElementById("mentionCurrent");
 
   // Send message on Enter
-  promptInput?.addEventListener("keydown", e => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
+  if (promptInput) {
+    promptInput.addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  }
 
-  sendButton?.addEventListener("click", sendMessage);
-  abortButton?.addEventListener("click", () => {
-    vscode.postMessage({ type: "abort" });
-  });
+  if (sendButton) {
+    sendButton.addEventListener("click", sendMessage);
+  }
 
-  mentionButton?.addEventListener("click", () => {
-    vscode.postMessage({ type: "getFileContext" });
-  });
+  if (abortButton) {
+    abortButton.addEventListener("click", () => {
+      vscode.postMessage({ type: "abort" });
+    });
+  }
+
+  if (mentionButton) {
+    mentionButton.addEventListener("click", () => {
+      vscode.postMessage({ type: "getFileContext" });
+    });
+  }
 
   // Request file context on load
   vscode.postMessage({ type: "getFileContext" });
@@ -63,12 +65,14 @@ window.addEventListener("message", event => {
 });
 
 function sendMessage() {
-  const promptInput = document.getElementById("prompt") as HTMLInputElement;
+  const promptInput = document.getElementById("prompt");
   const content = promptInput?.value.trim();
 
   if (content) {
     vscode.postMessage({ type: "sendMessage", content });
-    promptInput.value = "";
+    if (promptInput) {
+      promptInput.value = "";
+    }
     showAbortButton();
   }
 }
@@ -118,7 +122,7 @@ function renderMessages() {
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-function formatContent(content: string): string {
+function formatContent(content) {
   // Simple markdown-like formatting
   let formatted = content;
 
@@ -150,7 +154,7 @@ function formatContent(content: string): string {
   return formatted;
 }
 
-function escapeHtml(text: string): string {
+function escapeHtml(text) {
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
@@ -165,7 +169,7 @@ function updateConnectionStatus() {
   }
 }
 
-function updateFileContext(currentFile: any, openFiles: any[]) {
+function updateFileContext(currentFile, openFiles) {
   const fileContextDiv = document.getElementById("fileContext");
   if (!fileContextDiv) {
     return;
@@ -182,9 +186,11 @@ function updateFileContext(currentFile: any, openFiles: any[]) {
     const button = document.createElement("button");
     button.textContent = `@ ${currentFile.relativePath}`;
     button.onclick = () => {
-      const promptInput = document.getElementById("prompt") as HTMLInputElement;
-      promptInput.value = `@${currentFile.relativePath} ${promptInput.value}`;
-      promptInput.focus();
+      const promptInput = document.getElementById("prompt");
+      if (promptInput) {
+        promptInput.value = `@${currentFile.relativePath} ${promptInput.value}`;
+        promptInput.focus();
+      }
     };
     fileContextDiv.appendChild(button);
   }
@@ -198,17 +204,19 @@ function updateFileContext(currentFile: any, openFiles: any[]) {
     const button = document.createElement("button");
     button.textContent = `@ ${file.relativePath}`;
     button.onclick = () => {
-      const promptInput = document.getElementById("prompt") as HTMLInputElement;
-      promptInput.value = `@${file.relativePath} ${promptInput.value}`;
-      promptInput.focus();
+      const promptInput = document.getElementById("prompt");
+      if (promptInput) {
+        promptInput.value = `@${file.relativePath} ${promptInput.value}`;
+        promptInput.focus();
+      }
     };
     fileContextDiv.appendChild(button);
   }
 }
 
 function showAbortButton() {
-  const abortButton = document.getElementById("abort") as HTMLButtonElement;
-  const sendButton = document.getElementById("send") as HTMLButtonElement;
+  const abortButton = document.getElementById("abort");
+  const sendButton = document.getElementById("send");
 
   if (abortButton && sendButton) {
     abortButton.style.display = "inline-block";
@@ -217,10 +225,9 @@ function showAbortButton() {
 
   // Hide abort button after 30 seconds (timeout)
   setTimeout(() => {
-    abortButton.style.display = "none";
-    sendButton.style.display = "inline-block";
+    if (abortButton && sendButton) {
+      abortButton.style.display = "none";
+      sendButton.style.display = "inline-block";
+    }
   }, 30000);
 }
-
-// Expose functions globally for onclick attributes
-(window as any).sendMessage = sendMessage;
