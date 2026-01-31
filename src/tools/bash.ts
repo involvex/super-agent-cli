@@ -1,8 +1,8 @@
 import { ConfirmationService } from "../utils/confirmation-service";
 import { ToolResult } from "../types/index";
+import * as shellQuote from "shell-quote";
 import { spawn } from "child_process";
 import { promisify } from "util";
-import * as shellQuote from "shell-quote";
 
 const promisifyFn = promisify; // kept in case other parts of this file evolve to use promisify
 

@@ -26,6 +26,7 @@
         "openai": "^6.17.0",
         "react": "^19.2.4",
         "ripgrep-node": "^1.0.0",
+        "shell-quote": "^1.8.3",
         "tiktoken": "^1.0.22",
         "ws": "^8.19.0",
       },
