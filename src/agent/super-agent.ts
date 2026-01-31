@@ -68,38 +68,29 @@ export class SuperAgent extends EventEmitter {
   ) {
     super();
     const manager = getSettingsManager();
-    const settings = manager.loadUserSettings();
-    const activeProviderId = (settings.active_provider || "grok").toLowerCase();
-
-    const providerConfig = settings.providers[activeProviderId];
-    // Fallback if config is missing (shouldn't happen with defaults, but safety check)
-    const providerType = providerConfig?.provider || activeProviderId;
 
     // Resolve effective configuration
     // Command line args (constructor params) override settings
-    const effectiveApiKey = apiKey || providerConfig?.api_key || "";
-    // Ensure baseURL is undefined if empty string to let SDKs use defaults
-    let effectiveBaseURL =
-      baseURL ||
-      (providerConfig?.base_url ? providerConfig.base_url : undefined);
+    const activeConfig = manager.getActiveProviderConfig();
+    const activeProviderId = activeConfig?.id || "grok";
+    const providerType = activeConfig?.provider || activeProviderId;
+
+    const effectiveApiKey = apiKey || manager.getApiKey() || "";
+    let effectiveBaseURL = baseURL || manager.getBaseURL();
+    const effectiveModel = model || manager.getCurrentModel();
 
     // Cloudflare Workers AI specific handling
     if (
-      providerConfig?.provider === "workers-ai" &&
+      providerType === "workers-ai" &&
       effectiveBaseURL?.includes("{ACCOUNT_ID}")
     ) {
-      if (providerConfig.account_id) {
+      if (activeConfig?.account_id) {
         effectiveBaseURL = effectiveBaseURL.replace(
           "{ACCOUNT_ID}",
-          providerConfig.account_id,
+          activeConfig.account_id,
         );
       }
     }
-    const effectiveModel =
-      model ||
-      providerConfig?.model ||
-      providerConfig?.default_model ||
-      "grok-code-fast-1";
 
     this.maxToolRounds = maxToolRounds || 400;
 
@@ -231,26 +222,24 @@ Current working directory: ${process.cwd()}`,
    */
   public setProvider(providerId: string): void {
     const manager = getSettingsManager();
-    const settings = manager.loadUserSettings();
 
-    // Normalize provider ID
+    // Normalize provider ID and update active provider in settings
     const activeProviderId = (providerId || "grok").toLowerCase();
 
+    // Load config for this specific provider ID
+    const settings = manager.loadUserSettings();
     const providerConfig = settings.providers[activeProviderId];
-    if (!providerConfig) {
-      throw new Error(`Provider '${activeProviderId}' not configured.`);
-    }
+    const providerType = providerConfig?.provider || activeProviderId;
 
-    const providerType = providerConfig.provider || activeProviderId;
-    const effectiveApiKey = providerConfig.api_key || "";
-    let effectiveBaseURL = providerConfig.base_url || undefined;
+    const effectiveApiKey = providerConfig?.api_key || "";
+    let effectiveBaseURL = providerConfig?.base_url || undefined;
 
     // Cloudflare Workers AI specific handling
     if (
-      providerConfig.provider === "workers-ai" &&
+      providerType === "workers-ai" &&
       effectiveBaseURL?.includes("{ACCOUNT_ID}")
     ) {
-      if (providerConfig.account_id) {
+      if (providerConfig?.account_id) {
         effectiveBaseURL = effectiveBaseURL.replace(
           "{ACCOUNT_ID}",
           providerConfig.account_id,
@@ -259,8 +248,8 @@ Current working directory: ${process.cwd()}`,
     }
 
     const effectiveModel =
-      providerConfig.model ||
-      providerConfig.default_model ||
+      providerConfig?.model ||
+      providerConfig?.default_model ||
       "grok-code-fast-1";
 
     // Re-instantiate appropriate provider

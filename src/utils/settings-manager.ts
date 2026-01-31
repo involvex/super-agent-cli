@@ -312,6 +312,9 @@ export class SettingsManager {
     value: UserSettings[K],
   ): void {
     const settings = { [key]: value } as Partial<UserSettings>;
+    if (key === "active_provider" && typeof value === "string") {
+      settings.active_provider = value.toLowerCase();
+    }
     this.saveUserSettings(settings);
   }
 
@@ -372,7 +375,7 @@ export class SettingsManager {
 
   public getActiveProviderConfig(): ProviderConfig | undefined {
     const settings = this.getEffectiveSettings();
-    const active = settings.active_provider;
+    const active = (settings.active_provider || "grok").toLowerCase();
     return settings.providers?.[active];
   }
 
@@ -383,7 +386,7 @@ export class SettingsManager {
 
   public setCurrentModel(model: string): void {
     const settings = this.loadUserSettings();
-    const active = settings.active_provider;
+    const active = (settings.active_provider || "grok").toLowerCase();
     if (settings.providers && settings.providers[active]) {
       settings.providers[active].model = model;
       this.saveUserSettings(settings);

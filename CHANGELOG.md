@@ -1,3 +1,11 @@
+## [0.0.70](https://github.com/involvex/super-agent-cli/compare/v0.0.69...v0.0.70) (2026-01-30)
+
+### Features
+
+- **settings:** add zai models, update default to glm-4 ([231f2a2](https://github.com/involvex/super-agent-cli/commit/231f2a261c57ad253f9d1269ed94d6ab1310ca01))
+
+## [0.0.69](https://github.com/involvex/super-agent-cli/compare/v0.0.68...v0.0.69) (2026-01-30)
+
 ## [0.0.68](https://github.com/involvex/super-agent-cli/compare/v0.0.67...v0.0.68) (2026-01-30)
 
 ### Features
