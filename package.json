@@ -1,6 +1,6 @@
 {
   "name": "@involvex/super-agent-cli",
-  "version": "0.0.82",
+  "version": "0.0.83",
   "description": "An open-source AI agent that brings the power of Super Agent directly into your terminal.",
   "keywords": [
     "cli",
