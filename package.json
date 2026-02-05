@@ -60,7 +60,8 @@
     "test:integration": "vitest run src/tests/integration",
     "test:unit": "vitest run src/tests/unit",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release": "powershell -File scripts/release.ps1"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

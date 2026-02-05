@@ -629,6 +629,7 @@ export function useInputHandler({
     const baseCommands: CommandSuggestion[] = [
       { command: "/help", description: "Show help information" },
       { command: "/clear", description: "Clear chat history" },
+      { command: "/theme", description: "Customize application theme" },
       {
         command: "/init",
         description: "Create Agents.md for project instructions",
@@ -777,6 +778,57 @@ export function useInputHandler({
       return true;
     }
 
+    if (trimmedInput === "/theme") {
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      const currentTheme = settings.ui.theme || "dark";
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: `Current theme: ${currentTheme}\n\nAvailable themes: dark, light\n\nUsage: /theme <name>\nExample: /theme light`,
+          timestamp: new Date(),
+        },
+      ]);
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput.startsWith("/theme ")) {
+      const themeName = trimmedInput
+        .replace("/theme ", "")
+        .trim()
+        .toLowerCase();
+
+      if (themeName === "dark" || themeName === "light") {
+        const manager = getSettingsManager();
+        const settings = manager.loadUserSettings();
+        settings.ui.theme = themeName;
+        manager.saveUserSettings(settings);
+
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `✅ Theme switched to: ${themeName}`,
+            timestamp: new Date(),
+          },
+        ]);
+      } else {
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "assistant",
+            content: `❌ Invalid theme: ${themeName}. Available: dark, light`,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+      clearInput();
+      return true;
+    }
+
     if (trimmedInput === "/help") {
       const helpEntry: ChatEntry = {
         type: "assistant",
@@ -785,6 +837,7 @@ export function useInputHandler({
 Built-in Commands:
   /clear      - Clear chat history
   /help       - Show this help
+  /theme      - Customize application theme
   /doctor     - Check system health & connection
   /init       - Create Agents.md for project-specific AI instructions
   /exit       - Exit application
@@ -799,6 +852,7 @@ Provider Commands:
   /provider set-url <id> <url>   - Set base URL for provider
   /provider set-account <id> <acc_id> - Set account ID (e.g. workers-ai)
   /provider remove <id>  - Remove a provider
+  /provider reset        - Reset provider settings to defaults
 
 Model Commands:
   /models              - Show model selection UI
@@ -1665,6 +1719,38 @@ Use /config set ui.statusbar_config.show_model true to toggle individual items.
           },
         ]);
       }
+      clearInput();
+      return true;
+    }
+
+    if (trimmedInput === "/provider reset") {
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+
+      // Reset to default provider and clear other configs
+      const defaultProviders = {
+        grok: {
+          id: "grok",
+          provider: "grok",
+          model: "grok-code-fast-1",
+          api_key: "",
+          base_url: "https://api.x.ai/v1",
+          default_model: "grok-code-fast-1",
+        },
+      };
+
+      settings.active_provider = "grok";
+      settings.providers = { ...settings.providers, ...defaultProviders };
+      manager.saveUserSettings(settings);
+
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: "assistant",
+          content: "✅ Provider settings reset to defaults.",
+          timestamp: new Date(),
+        },
+      ]);
       clearInput();
       return true;
     }

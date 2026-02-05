@@ -124,8 +124,11 @@ export function useEnhancedInput({
         return;
       }
 
-      // Handle Ctrl+C - check multiple ways it could be detected
-      if ((key.ctrl && inputChar === "c") || inputChar === "\x03") {
+      // Handle Ctrl+C - clear input
+      if (
+        (key.ctrl && (inputChar === "c" || inputChar === "C")) ||
+        inputChar === "\x03"
+      ) {
         setInputState("");
         setCursorPositionState(0);
         setOriginalInput("");

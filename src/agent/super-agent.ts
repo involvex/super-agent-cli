@@ -17,14 +17,17 @@ import { LLMMessage, LLMProvider, LLMToolCall } from "../core/llm-provider";
 import { createTokenCounter, TokenCounter } from "../utils/token-counter";
 import { loadCustomInstructions } from "../utils/custom-instructions";
 import { PerplexityProvider } from "../core/providers/perplexity";
+import { OpenRouterProvider } from "../core/providers/openrouter";
 import { AnthropicProvider } from "../core/providers/anthropic";
 import { getSettingsManager } from "../utils/settings-manager";
 import { TogetherProvider } from "../core/providers/together";
 import { DeepSeekProvider } from "../core/providers/deepseek";
+import { MistralProvider } from "../core/providers/mistral";
 import { OpenAIProvider } from "../core/providers/openai";
 import { OllamaProvider } from "../core/providers/ollama";
 import { GeminiProvider } from "../core/providers/gemini";
 import { CohereProvider } from "../core/providers/cohere";
+import { GroqProvider } from "../core/providers/groq";
 import { GrokProvider } from "../core/providers/grok";
 import { getFileIndexer } from "../indexing/indexer";
 import { loadMCPConfig } from "../mcp/config";
@@ -151,6 +154,24 @@ export class SuperAgent extends EventEmitter {
       );
     } else if (providerType === "ollama") {
       this.superAgentClient = new OllamaProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else if (providerType === "mistral") {
+      this.superAgentClient = new MistralProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else if (providerType === "groq") {
+      this.superAgentClient = new GroqProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else if (providerType === "openrouter") {
+      this.superAgentClient = new OpenRouterProvider(
         effectiveApiKey,
         effectiveBaseURL,
         effectiveModel,
@@ -357,6 +378,24 @@ Current working directory: ${process.cwd()}`,
         );
       } else if (providerType === "ollama") {
         this.superAgentClient = new OllamaProvider(
+          effectiveApiKey,
+          effectiveBaseURL,
+          effectiveModel,
+        );
+      } else if (providerType === "mistral") {
+        this.superAgentClient = new MistralProvider(
+          effectiveApiKey,
+          effectiveBaseURL,
+          effectiveModel,
+        );
+      } else if (providerType === "groq") {
+        this.superAgentClient = new GroqProvider(
+          effectiveApiKey,
+          effectiveBaseURL,
+          effectiveModel,
+        );
+      } else if (providerType === "openrouter") {
+        this.superAgentClient = new OpenRouterProvider(
           effectiveApiKey,
           effectiveBaseURL,
           effectiveModel,
