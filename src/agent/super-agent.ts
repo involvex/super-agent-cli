@@ -20,7 +20,9 @@ import { PerplexityProvider } from "../core/providers/perplexity";
 import { AnthropicProvider } from "../core/providers/anthropic";
 import { getSettingsManager } from "../utils/settings-manager";
 import { TogetherProvider } from "../core/providers/together";
+import { DeepSeekProvider } from "../core/providers/deepseek";
 import { OpenAIProvider } from "../core/providers/openai";
+import { OllamaProvider } from "../core/providers/ollama";
 import { GeminiProvider } from "../core/providers/gemini";
 import { CohereProvider } from "../core/providers/cohere";
 import { GrokProvider } from "../core/providers/grok";
@@ -137,6 +139,18 @@ export class SuperAgent extends EventEmitter {
       );
     } else if (providerType === "cohere") {
       this.superAgentClient = new CohereProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else if (providerType === "deepseek") {
+      this.superAgentClient = new DeepSeekProvider(
+        effectiveApiKey,
+        effectiveBaseURL,
+        effectiveModel,
+      );
+    } else if (providerType === "ollama") {
+      this.superAgentClient = new OllamaProvider(
         effectiveApiKey,
         effectiveBaseURL,
         effectiveModel,
@@ -331,6 +345,18 @@ Current working directory: ${process.cwd()}`,
         );
       } else if (providerType === "grok") {
         this.superAgentClient = new GrokProvider(
+          effectiveApiKey,
+          effectiveBaseURL,
+          effectiveModel,
+        );
+      } else if (providerType === "deepseek") {
+        this.superAgentClient = new DeepSeekProvider(
+          effectiveApiKey,
+          effectiveBaseURL,
+          effectiveModel,
+        );
+      } else if (providerType === "ollama") {
+        this.superAgentClient = new OllamaProvider(
           effectiveApiKey,
           effectiveBaseURL,
           effectiveModel,

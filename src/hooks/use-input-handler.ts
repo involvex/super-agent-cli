@@ -439,18 +439,33 @@ export function useInputHandler({
             filteredSuggestions.length - 1,
           );
           const selectedCommand = filteredSuggestions[safeIndex];
-          // If the command has arguments placeholders (e.g. <name>), strip them for the actual input
-          // Or keep them? Usually we just want the command base.
-          // But if the user defined command as "/mcp <action>", we probably want "/mcp ".
-          // Let's check how other commands are defined.
-          // "/chat save <name>" -> we probably want "/chat save "?
-          // The current logic uses the full string.
 
-          // Actually, let's keep it simple first: just ensure cursor goes to end.
-          const newInput = selectedCommand.command + " ";
-          // By passing the cursor position to setInput, we avoid the stale closure issue
-          // where setCursorPosition would clamp based on the old input length.
-          setInput(newInput, newInput.length);
+          // Strip placeholders like <name>, [action], etc.
+          // Examples: "/chat save <name>" -> "/chat save ", "/mcp <action>" -> "/mcp "
+          let completedCommand = selectedCommand.command;
+
+          // Remove everything starting from the first space followed by a placeholder
+          // or just placeholders themselves
+          completedCommand = completedCommand
+            .replace(/\s*<[^>]+>/g, "")
+            .replace(/\s*\[[^\]]+\]/g, "");
+
+          // If it doesn't end with a space and it was a placeholder-heavy command, add a space
+          if (
+            !completedCommand.endsWith(" ") &&
+            selectedCommand.command.includes("<")
+          ) {
+            completedCommand += " ";
+          } else if (!completedCommand.endsWith(" ")) {
+            completedCommand += " ";
+          }
+
+          // Preserve any text that might be after the cursor if we're in the middle of input
+          const afterCursor = input.slice(cursorPosition);
+          const newInput = completedCommand + afterCursor;
+
+          // Set input and position cursor at the end of the completed command part
+          setInput(newInput, completedCommand.length);
 
           setShowCommandSuggestions(false);
           setSelectedCommandIndex(0);

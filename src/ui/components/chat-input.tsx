@@ -1,5 +1,5 @@
+import React, { useEffect, useState } from "react";
 import { Box, Text } from "ink";
-import React from "react";
 
 interface ChatInputProps {
   input: string;
@@ -14,6 +14,22 @@ export function ChatInput({
   isProcessing,
   isStreaming,
 }: ChatInputProps) {
+  const [blink, setBlink] = useState(true);
+
+  // Blinking cursor effect
+  useEffect(() => {
+    if (isProcessing || isStreaming) {
+      setBlink(false);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setBlink(prev => !prev);
+    }, 530);
+
+    return () => clearInterval(interval);
+  }, [isProcessing, isStreaming]);
+
   const beforeCursor = input.slice(0, cursorPosition);
   const afterCursor = input.slice(cursorPosition);
 
@@ -67,7 +83,10 @@ export function ChatInput({
                 <Text>
                   {beforeCursorInLine}
                   {showCursor && (
-                    <Text backgroundColor="white" color="black">
+                    <Text
+                      backgroundColor={blink ? "white" : undefined}
+                      color={blink ? "black" : "white"}
+                    >
                       {cursorChar}
                     </Text>
                   )}
@@ -109,7 +128,10 @@ export function ChatInput({
               {placeholderText}
             </Text>
             {showCursor && (
-              <Text backgroundColor="white" color="black">
+              <Text
+                backgroundColor={blink ? "white" : undefined}
+                color={blink ? "black" : "white"}
+              >
                 {" "}
               </Text>
             )}
@@ -118,7 +140,10 @@ export function ChatInput({
           <Text>
             {beforeCursor}
             {showCursor && (
-              <Text backgroundColor="white" color="black">
+              <Text
+                backgroundColor={blink ? "white" : undefined}
+                color={blink ? "black" : "white"}
+              >
                 {cursorChar}
               </Text>
             )}

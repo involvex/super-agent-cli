@@ -13,7 +13,7 @@ interface CommandSuggestionsProps {
   isVisible: boolean;
 }
 
-export const MAX_SUGGESTIONS = 8;
+export const MAX_SUGGESTIONS = 30;
 
 export function filterCommandSuggestions<T extends { command: string }>(
   suggestions: T[],

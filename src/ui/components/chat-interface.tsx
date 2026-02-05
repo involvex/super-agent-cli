@@ -408,15 +408,7 @@ function ChatInterfaceWithAgent({
         </Box>
       )}
 
-      <Box
-        flexDirection="column"
-        ref={scrollRef}
-        key={
-          chatHistory.length > 0
-            ? `chat-history-${chatHistory[chatHistory.length - 1]?.timestamp.getTime()}`
-            : "chat-history-empty"
-        }
-      >
+      <Box flexDirection="column" ref={scrollRef}>
         <ChatHistory
           entries={chatHistory}
           isConfirmationActive={!!confirmationOptions}

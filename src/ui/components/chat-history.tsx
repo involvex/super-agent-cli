@@ -225,7 +225,7 @@ export function ChatHistory({
 
   return (
     <Box flexDirection="column">
-      {filteredEntries.slice(-20).map((entry, index) => (
+      {filteredEntries.slice(-50).map((entry, index) => (
         <MemoizedChatEntry
           key={`${entry.timestamp.getTime()}-${index}`}
           entry={entry}
