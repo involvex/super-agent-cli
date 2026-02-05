@@ -13,8 +13,7 @@ if ($gitStatus) {
 
 # 2. Bump version, create commit and tag
 Write-Host "Bumping version and creating tag..."
-# `bun pm version patch` automatically creates a commit and a tag like vX.Y.Z
-# We need to capture the new version string.
+# `bun pm version patch` automatically updates package.json and bun.lockb, then creates a commit and a tag like vX.Y.Z
 $newVersionOutput = bun pm version patch
 $NEW_VERSION = ($newVersionOutput | Select-Object -Last 1).Trim() # Assumes the last line is the version, e.g., "v1.0.1"
 Write-Host "Version bumped to $NEW_VERSION"
@@ -23,21 +22,28 @@ Write-Host "Version bumped to $NEW_VERSION"
 Write-Host "Generating CHANGELOG.md..."
 bun run changelog
 
-# 4. Stage CHANGELOG.md
-Write-Host "Staging CHANGELOG.md..."
-git add CHANGELOG.md
+# 4. Run format and lint:fix to ensure all files (including package.json and CHANGELOG.md) adhere to standards
+# This step might modify package.json and CHANGELOG.md again if they were not perfectly formatted
+Write-Host "Running format and lint fix to ensure consistency..."
+bun run format # Reformats files, including package.json and CHANGELOG.md if needed
+bun run lint:fix # Fixes linting issues, could touch files again
 
-# 5. Amend the previous commit to include CHANGELOG.md
-# git commit --amend automatically takes the last commit message if --no-edit is used
-Write-Host "Amending previous commit to include CHANGELOG.md..."
+# 5. Stage all changes that occurred since the last commit (which was the version bump)
+# This includes CHANGELOG.md and any reformatting applied to package.json (or other files touched by format/lint)
+Write-Host "Staging all remaining changes (CHANGELOG.md and formatting updates)..."
+git add . # Use 'git add .' to stage all modifications
+
+# 6. Amend the previous commit (the version bump commit) to include these new staged changes
+# git commit --amend --no-edit keeps the existing commit message (e.g., "vX.Y.Z")
+Write-Host "Amending previous commit to include CHANGELOG.md and formatting changes..."
 git commit --amend --no-edit
 
-# 6. Force update the tag to point to the amended commit (important!)
+# 7. Force update the tag to point to the amended commit (important!)
 # `git commit --amend` creates a new commit SHA. We need to update the tag to point to this new SHA.
 Write-Host "Updating Git tag $NEW_VERSION to new commit SHA..."
 git tag -f $NEW_VERSION HEAD
 
-# 7. Run the project build (dist/ is ignored, so it's not committed)
+# 8. Run the project build (dist/ is ignored, so it's not committed)
 Write-Host "Running project build..."
 bun run build
 

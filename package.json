@@ -53,6 +53,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --ignore-pattern dist",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix --ignore-pattern dist",
     "package:vscode": "bun run -F super-agent-vscode package",
+    "release": "powershell -File scripts/release.ps1",
     "start": "bun run dist/index.js",
     "start:node": "node dist/index.js",
     "test": "vitest run",
@@ -60,8 +61,7 @@
     "test:integration": "vitest run src/tests/integration",
     "test:unit": "vitest run src/tests/unit",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
-    "release": "powershell -File scripts/release.ps1"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
