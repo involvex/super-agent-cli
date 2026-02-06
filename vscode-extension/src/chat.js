@@ -124,23 +124,22 @@ function renderMessages() {
 }
 
 function formatContent(content) {
-  // Simple markdown-like formatting
-  let formatted = content;
+  // First escape everything to prevent XSS
+  let formatted = escapeHtml(content);
 
+  // Now apply formatting on the escaped content
   // Code blocks
   formatted = formatted.replace(
     /```(\w+)?\n([\s\S]*?)```/g,
     (match, lang, code) => {
-      return `<pre><code class="language-${lang || "text"}">${escapeHtml(
-        code.trim(),
-      )}</code></pre>`;
+      return `<pre><code class="language-${lang || "text"}">${code.trim()}</code></pre>`;
     },
   );
 
   // Inline code
   formatted = formatted.replace(
     /`([^`]+)`/g,
-    (match, code) => `<code>${escapeHtml(code)}</code>`,
+    (match, code) => `<code>${code}</code>`,
   );
 
   // Bold

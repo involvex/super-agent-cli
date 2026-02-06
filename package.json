@@ -63,9 +63,14 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
+  "overrides": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "brace-expansion": "^2.0.1",
+    "minimatch": "^9.0.5"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@types/mime": "^4.0.0",
     "axios": "^1.13.4",
     "bcrypt": "^6.0.0",
@@ -73,8 +78,8 @@
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
     "conventional-changelog-cli": "^5.0.0",
-    "dotenv": "^17.2.3",
-    "firebase": "^12.8.0",
+    "dotenv": "^17.2.4",
+    "firebase": "^12.9.0",
     "fs-extra": "^11.3.3",
     "ignore": "^7.0.5",
     "ink": "^6.6.0",
@@ -83,7 +88,7 @@
     "marked-terminal": "^7.3.0",
     "mime": "^4.1.0",
     "open": "^11.0.0",
-    "openai": "^6.17.0",
+    "openai": "^6.18.0",
     "react": "^19.2.4",
     "ripgrep-node": "^1.0.0",
     "shell-quote": "^1.8.3",
@@ -92,7 +97,7 @@
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
-    "@types/node": "^25.1.0",
+    "@types/node": "^25.2.1",
     "@types/react": "18.3.27",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
@@ -102,7 +107,7 @@
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-packagejson": "^3.0.0",
-    "prettier-plugin-sort-imports": "^1.8.9",
+    "prettier-plugin-sort-imports": "^1.8.10",
     "react-devtools-core": "^7.0.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

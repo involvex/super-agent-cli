@@ -1,9 +1,6 @@
-import { exec, spawn } from "child_process";
 import { strict as assert } from "assert";
+import { spawn } from "child_process";
 import { EventEmitter } from "events";
-import { promisify } from "util";
-
-const execAsync = promisify(exec);
 
 export interface ConfirmationOptions {
   operation: string;

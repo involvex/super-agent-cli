@@ -1,9 +1,6 @@
-import { exec } from "child_process";
-import { promisify } from "util";
+import { runSafeCommand } from "../utils/exec";
 import * as path from "path";
 import fs from "fs-extra";
-
-const execAsync = promisify(exec);
 
 export interface RepositoryConfig {
   type: "agents" | "skills" | "hooks" | "mcp";
@@ -89,27 +86,35 @@ export class RepositoryManager {
 
       if (!(await fs.pathExists(gitDirPath))) {
         // Not in a git repo, just clone instead of using submodule
-        await execAsync(`git clone ${repoConfig.url} ${targetDir}`, {
+        await runSafeCommand("git", ["clone", repoConfig.url, targetDir], {
           cwd: process.cwd(),
         });
       } else {
         // Add as git submodule
         try {
-          await execAsync(`git submodule add ${repoConfig.url} ${targetDir}`, {
-            cwd: process.cwd(),
-          });
+          await runSafeCommand(
+            "git",
+            ["submodule", "add", repoConfig.url, targetDir],
+            {
+              cwd: process.cwd(),
+            },
+          );
         } catch (submoduleError: any) {
           // If submodule add fails, fall back to regular clone
-          await execAsync(`git clone ${repoConfig.url} ${targetDir}`, {
+          await runSafeCommand("git", ["clone", repoConfig.url, targetDir], {
             cwd: process.cwd(),
           });
         }
 
         // Update .gitmodules if needed
         try {
-          await execAsync(`git submodule update --init --recursive`, {
-            cwd: process.cwd(),
-          });
+          await runSafeCommand(
+            "git",
+            ["submodule", "update", "--init", "--recursive"],
+            {
+              cwd: process.cwd(),
+            },
+          );
         } catch {
           // Ignore update errors
         }
@@ -134,9 +139,13 @@ export class RepositoryManager {
       const targetDir = path.join(this.reposDir, config.type);
       try {
         if (await fs.pathExists(targetDir)) {
-          await execAsync(`git pull origin ${config.branch || "main"}`, {
-            cwd: targetDir,
-          });
+          await runSafeCommand(
+            "git",
+            ["pull", "origin", config.branch || "main"],
+            {
+              cwd: targetDir,
+            },
+          );
           updated.push(key);
         }
       } catch (error: any) {

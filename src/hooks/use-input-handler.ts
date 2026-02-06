@@ -442,14 +442,21 @@ export function useInputHandler({
 
           // Strip placeholders like <name>, [action], etc.
           // Examples: "/chat save <name>" -> "/chat save ", "/mcp <action>" -> "/mcp "
-          let completedCommand = selectedCommand.command;
+          const stripCommandPlaceholders = (command: string): string => {
+            let previous: string;
+            let current = command;
+            do {
+              previous = current;
+              current = current
+                .replace(/\s*<[^>]+>/g, "")
+                .replace(/\s*\[[^\]]+\]/g, "");
+            } while (current !== previous);
+            return current;
+          };
 
-          // Remove everything starting from the first space followed by a placeholder
-          // or just placeholders themselves
-          completedCommand = completedCommand
-            .replace(/\s*<[^>]+>/g, "")
-            .replace(/\s*\[[^\]]+\]/g, "");
-
+          let completedCommand = stripCommandPlaceholders(
+            selectedCommand.command,
+          );
           // If it doesn't end with a space and it was a placeholder-heavy command, add a space
           if (
             !completedCommand.endsWith(" ") &&

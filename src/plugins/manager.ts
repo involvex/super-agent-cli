@@ -1,13 +1,11 @@
 import { getSettingsManager } from "../utils/settings-manager";
 import { SuperAgent } from "../agent/super-agent";
+import { runSafeCommand } from "../utils/exec";
 import { SuperAgentPlugin } from "./types";
 import { SuperAgentTool } from "../types";
-import { exec } from "child_process";
-import { promisify } from "util";
+import execAsync from "node:process";
 import * as path from "path";
 import fs from "fs-extra";
-
-const execAsync = promisify(exec);
 
 export class PluginManager {
   private static instance: PluginManager;
@@ -156,13 +154,15 @@ export class PluginManager {
         `Repository already cloned at ${targetDir}. Pulling latest...`,
       );
       try {
-        await execAsync(`cd "${targetDir}" && git pull`);
+        await runSafeCommand("git", ["pull"], {
+          cwd: targetDir,
+        });
       } catch (error) {
         console.warn(`Failed to pull updates: ${error}`);
       }
     } else {
       // Clone the repository
-      await execAsync(`git clone "${gitUrl}" "${targetDir}"`);
+      await runSafeCommand("git", ["clone", gitUrl, targetDir]);
     }
 
     // Try to build if package.json exists
@@ -174,20 +174,18 @@ export class PluginManager {
         const hasBun = await fs.pathExists(path.join(targetDir, "bun.lockb"));
         const hasYarn = await fs.pathExists(path.join(targetDir, "yarn.lock"));
 
-        const installCmd = hasBun
-          ? "bun install"
-          : hasYarn
-            ? "yarn install"
-            : "npm install";
-        await execAsync(`cd "${targetDir}" && ${installCmd}`);
+        const installCmd = hasBun ? "bun" : hasYarn ? "yarn" : "npm";
+        const installArgs = ["install"];
+        await runSafeCommand(installCmd, installArgs, {
+          cwd: targetDir,
+        });
 
         console.log("🔨 Building plugin...");
-        const buildCmd = hasBun
-          ? "bun run build"
-          : hasYarn
-            ? "yarn build"
-            : "npm run build";
-        await execAsync(`cd "${targetDir}" && ${buildCmd}`);
+        const buildCmd = hasBun ? "bun" : hasYarn ? "yarn" : "npm";
+        const buildArgs = ["run", "build"];
+        await runSafeCommand(buildCmd, buildArgs, {
+          cwd: targetDir,
+        });
       } catch (error: any) {
         console.warn(`Build failed: ${error.message}`);
       }
@@ -222,20 +220,18 @@ export class PluginManager {
           path.join(absolutePath, "yarn.lock"),
         );
 
-        const installCmd = hasBun
-          ? "bun install"
-          : hasYarn
-            ? "yarn install"
-            : "npm install";
-        await execAsync(`cd "${absolutePath}" && ${installCmd}`);
+        const installCmd = hasBun ? "bun" : hasYarn ? "yarn" : "npm";
+        const installArgs = ["install"];
+        await runSafeCommand(installCmd, installArgs, {
+          cwd: absolutePath,
+        });
 
         console.log("🔨 Building plugin...");
-        const buildCmd = hasBun
-          ? "bun run build"
-          : hasYarn
-            ? "yarn build"
-            : "npm run build";
-        await execAsync(`cd "${absolutePath}" && ${buildCmd}`);
+        const buildCmd = hasBun ? "bun" : hasYarn ? "yarn" : "npm";
+        const buildArgs = ["run", "build"];
+        await runSafeCommand(buildCmd, buildArgs, {
+          cwd: absolutePath,
+        });
       } catch (error: any) {
         console.warn(`Build failed: ${error.message}`);
       }
