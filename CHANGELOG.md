@@ -1,3 +1,11 @@
+## [0.0.87](https://github.com/involvex/super-agent-cli/compare/v0.0.86...v0.0.87) (2026-02-06)
+
+## [0.0.86](https://github.com/involvex/super-agent-cli/compare/v0.0.85...v0.0.86) (2026-02-06)
+
+### Features
+
+- **vscode:** add command to start CLI server from extension ([278cd12](https://github.com/involvex/super-agent-cli/commit/278cd1267b854599e3fbe477ca86aa7340fe96a5))
+
 ## [0.0.85](https://github.com/involvex/super-agent-cli/compare/v0.0.84...v0.0.85) (2026-02-05)
 
 ## [0.0.84](https://github.com/involvex/super-agent-cli/compare/v0.0.83...v0.0.84) (2026-02-05)
