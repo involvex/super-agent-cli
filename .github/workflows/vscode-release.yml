@@ -33,7 +33,7 @@ jobs:
       - name: Build Extension
         working-directory: ./vscode-extension
         run: |
-          npm install -g @vscode/vsce
+          bun install
           bun run package
 
       - name: Create Release

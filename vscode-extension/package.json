@@ -17,13 +17,13 @@
   "publisher": "involvex",
   "main": "./dist/extension.js",
   "scripts": {
-    "build": "npm run compile && npm run copy-assets",
+    "build": "bun run compile && bun run copy-assets",
     "compile": "tsc -p ./",
     "copy-assets": "node build.js",
     "lint": "eslint src --ext ts",
-    "package": "bun run build && vsce package --no-dependencies -o dist/",
+    "package": "npx vsce package --no-dependencies -o dist/",
     "typecheck": "tsc --noEmit",
-    "vscode:prepublish": "npm run compile && npm run copy-assets",
+    "vscode:prepublish": "bun run compile && bun run copy-assets",
     "watch": "tsc -w -p ./"
   },
   "contributes": {
@@ -31,17 +31,17 @@
       {
         "command": "super-agent.openChat",
         "title": "Open Super Agent Chat",
-        "icon": "icon.png"
+        "icon": "icon.svg"
       },
       {
         "command": "super-agent.reconnect",
         "title": "Reconnect to CLI",
-        "icon": "icon.png"
+        "icon": "icon.svg"
       },
       {
         "command": "super-agent.startServer",
         "title": "Start CLI Server",
-        "icon": "icon.png"
+        "icon": "icon.svg"
       },
       {
         "command": "super-agent.mentionFile",
@@ -58,7 +58,7 @@
           "type": "webview",
           "id": "super-agent.chat",
           "name": "Chat",
-          "icon": "icon.png"
+          "icon": "icon.svg"
         }
       ]
     },
@@ -67,7 +67,7 @@
         {
           "id": "super-agent-sidebar",
           "title": "Super Agent",
-          "icon": "icon.png"
+          "icon": "icon.svg"
         }
       ]
     }
