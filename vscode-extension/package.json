@@ -1,7 +1,7 @@
 {
   "name": "super-agent-vscode",
   "displayName": "Super Agent AI",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "AI-powered coding assistant with file context from Super Agent CLI",
   "categories": [
     "Machine Learning",
