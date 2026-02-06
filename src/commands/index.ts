@@ -10,6 +10,8 @@ import { createMCPCommand } from "./mcp";
 import { createGitCommand } from "./git";
 import { Command } from "commander";
 
+import { createStatusBarCommand } from "./statusbar";
+
 export function registerCommands(program: Command) {
   // Register all commands
   program.addCommand(createMCPCommand());
@@ -23,4 +25,5 @@ export function registerCommands(program: Command) {
   program.addCommand(createProviderCommand());
   program.addCommand(createIndexCommand());
   program.addCommand(createRepositoryCommand());
+  program.addCommand(createStatusBarCommand());
 }

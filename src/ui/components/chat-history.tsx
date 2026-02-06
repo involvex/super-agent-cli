@@ -1,7 +1,7 @@
 import { MarkdownRenderer } from "../utils/markdown-renderer";
 import { ChatEntry } from "../../agent/super-agent";
 import { DiffRenderer } from "./diff-renderer";
-import { Box, Text } from "ink";
+import { Box, Static, Text } from "ink";
 import React from "react";
 
 interface ChatHistoryProps {
@@ -225,13 +225,15 @@ export function ChatHistory({
 
   return (
     <Box flexDirection="column">
-      {filteredEntries.slice(-50).map((entry, index) => (
-        <MemoizedChatEntry
-          key={`${entry.timestamp.getTime()}-${index}`}
-          entry={entry}
-          index={index}
-        />
-      ))}
+      <Static items={filteredEntries}>
+        {(entry, index) => (
+          <MemoizedChatEntry
+            key={`${entry.timestamp.getTime()}-${index}`}
+            entry={entry}
+            index={index}
+          />
+        )}
+      </Static>
     </Box>
   );
 }

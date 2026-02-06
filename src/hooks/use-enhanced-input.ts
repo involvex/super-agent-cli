@@ -124,11 +124,14 @@ export function useEnhancedInput({
         return;
       }
 
-      // Handle Ctrl+C - clear input
+      // Handle Ctrl+C
       if (
         (key.ctrl && (inputChar === "c" || inputChar === "C")) ||
         inputChar === "\x03"
       ) {
+        if (input.length === 0) {
+          process.exit(0);
+        }
         setInputState("");
         setCursorPositionState(0);
         setOriginalInput("");
