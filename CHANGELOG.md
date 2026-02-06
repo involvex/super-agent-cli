@@ -1,3 +1,9 @@
+## [0.0.89](https://github.com/involvex/super-agent-cli/compare/v0.0.88...v0.0.89) (2026-02-06)
+
+### Features
+
+- enhance CLI-VSCode integration and replace enquirer with inquirer ([825a794](https://github.com/involvex/super-agent-cli/commit/825a79498f0ba7e1feefcbbeffac411aad187daa))
+
 ## [0.0.88](https://github.com/involvex/super-agent-cli/compare/v0.0.87...v0.0.88) (2026-02-06)
 
 ### Features
