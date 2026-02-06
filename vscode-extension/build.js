@@ -2,7 +2,7 @@ const path = require("path");
 const fs = require("fs");
 
 const srcDir = path.join(__dirname, "src");
-const outDir = path.join(__dirname, "out");
+const outDir = path.join(__dirname, "dist");
 
 // Ensure out directory exists
 if (!fs.existsSync(outDir)) {
@@ -18,20 +18,20 @@ for (const file of assetsToCopy) {
 
   if (fs.existsSync(srcPath)) {
     fs.copyFileSync(srcPath, outPath);
-    console.log(`Copied ${file} to out/`);
+    console.log(`Copied ${file} to dist/`);
   } else {
     console.warn(`Source file not found: ${srcPath}`);
   }
 }
 
-// Copy ws dependency to out/node_modules for packaging
+// Copy ws dependency to dist/node_modules for packaging
 const wsSrc = path.join(__dirname, "node_modules", "ws");
 const wsDest = path.join(outDir, "node_modules", "ws");
 
 if (fs.existsSync(wsSrc)) {
   // Copy recursively
   copyDirectory(wsSrc, wsDest);
-  console.log("Copied ws to out/node_modules/");
+  console.log("Copied ws to dist/node_modules/");
 } else {
   console.warn("ws not found in node_modules");
 }

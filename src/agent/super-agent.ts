@@ -281,6 +281,13 @@ Current working directory: ${process.cwd()}`,
   }
 
   /**
+   * Get the current chat history
+   */
+  public getChatHistory(): ChatEntry[] {
+    return this.chatHistory;
+  }
+
+  /**
    * Set the active provider dynamically
    */
   public async setProvider(providerId: string): Promise<void> {

@@ -107,16 +107,25 @@ export class WebServer {
       try {
         const message = JSON.parse(data.toString());
 
-        if (message.type === "prompt") {
-          await this.handlePrompt(message.content, ws);
+        if (message.type === "prompt" || message.type === "chat_message") {
+          const content = message.content?.message || message.content || "";
+          await this.handlePrompt(content, ws);
         } else if (message.type === "get_file_tree") {
           await this.handleGetFileTree(ws);
         } else if (message.type === "get_file_content") {
-          await this.handleGetFileContent(message.path, ws);
+          const filePath = message.path || message.filePath;
+          await this.handleGetFileContent(filePath, ws);
         } else if (message.type === "list_sessions") {
           await this.handleListSessions(ws);
         } else if (message.type === "switch_session") {
           await this.handleSwitchSession(message.sessionId, ws);
+        } else if (message.type === "get_chat_history") {
+          await this.handleGetChatHistory(ws);
+        } else if (message.type === "abort") {
+          this.agent.abortCurrentOperation();
+          ws.send(
+            JSON.stringify({ type: "done", content: "Operation aborted" }),
+          );
         }
       } catch (error) {
         console.error("WebSocket message error:", error);
@@ -287,6 +296,26 @@ export class WebServer {
       } else {
         throw new Error("Session not found");
       }
+    } catch (error: any) {
+      ws.send(JSON.stringify({ type: "error", content: error.message }));
+    }
+  }
+
+  private async handleGetChatHistory(ws: WebSocket): Promise<void> {
+    try {
+      const history = this.agent.getChatHistory();
+      ws.send(
+        JSON.stringify({
+          type: "chat_history",
+          messages: history.map(entry => ({
+            role: entry.type === "user" ? "user" : "assistant",
+            content: entry.content,
+            timestamp: entry.timestamp,
+            toolCall: entry.toolCall,
+            toolResult: entry.toolResult,
+          })),
+        }),
+      );
     } catch (error: any) {
       ws.send(JSON.stringify({ type: "error", content: error.message }));
     }

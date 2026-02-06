@@ -22,22 +22,64 @@ export class ChatProvider {
     private fileContextProvider: FileContextProvider,
   ) {
     this.setupCLIMessageHandlers();
+
+    // Listen for status changes from the connector
+    this.disposables.push(
+      new vscode.Disposable(
+        this.cliConnector.onStatusChange(connected => {
+          this.updateConnectionStatus(connected);
+        }),
+      ),
+    );
   }
 
   private setupCLIMessageHandlers(): void {
     // Handle incoming messages from CLI
-    this.cliConnector.onMessage("message", (response: CLIResponse) => {
-      this.addAssistantMessage(response.content || "");
+    // CLI sends 'assistant_message', 'user_message', 'tool_call', 'tool_result', 'done', 'error'
+    this.cliConnector.onMessage(
+      "assistant_message",
+      (response: CLIResponse) => {
+        this.addAssistantMessage(response.content || "");
+        this.updateWebview();
+      },
+    );
+
+    this.cliConnector.onMessage("user_message", (response: CLIResponse) => {
+      // Optional: handle if we want to sync user messages from other clients
+    });
+
+    this.cliConnector.onMessage("tool_call", (response: CLIResponse) => {
+      this.addSystemMessage(`Tool: ${response.content || "Executing..."}`);
       this.updateWebview();
     });
 
     this.cliConnector.onMessage("error", (response: CLIResponse) => {
-      this.addSystemMessage(`Error: ${response.error}`);
+      this.addSystemMessage(`Error: ${response.error || response.content}`);
       this.updateWebview();
     });
 
-    this.cliConnector.onMessage("status", (response: CLIResponse) => {
-      this.updateConnectionStatus(response.content?.connected || false);
+    this.cliConnector.onMessage("done", () => {
+      // Handle completion if needed
+    });
+
+    this.cliConnector.onMessage("file_tree", (response: any) => {
+      // Handle file tree if needed
+    });
+
+    this.cliConnector.onMessage("file_content", (response: any) => {
+      // Handle file content if needed
+    });
+
+    this.cliConnector.onMessage("chat_history", (response: any) => {
+      if (response.messages) {
+        this.messages = response.messages.map((msg: any) => ({
+          id: this.generateId(),
+          role: msg.role,
+          content: msg.content,
+          timestamp: new Date(msg.timestamp),
+        }));
+        this.updateWebview();
+      }
     });
   }
 
@@ -66,6 +108,11 @@ export class ChatProvider {
 
   private async handleWebviewMessage(message: any): Promise<void> {
     switch (message.type) {
+      case "ready":
+        this.updateConnectionStatus(this.cliConnector.getConnectionStatus());
+        this.cliConnector.requestChatHistory();
+        break;
+
       case "sendMessage":
         await this.handleSendMessage(message.content);
         break;
@@ -196,10 +243,10 @@ export class ChatProvider {
 
   private getHtmlContent(webview: vscode.Webview): string {
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.file(this.extensionUri.path + "/out/chat.js"),
+      vscode.Uri.file(this.extensionUri.path + "/dist/chat.js"),
     );
     const styleUri = webview.asWebviewUri(
-      vscode.Uri.file(this.extensionUri.path + "/out/chat.css"),
+      vscode.Uri.file(this.extensionUri.path + "/dist/chat.css"),
     );
 
     return `<!DOCTYPE html>

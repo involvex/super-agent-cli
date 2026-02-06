@@ -9,4 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Import and run the bundled CLI
-import(join(__dirname, "dist", "index.js"));
+const indexPath = __dirname.endsWith("dist")
+  ? join(__dirname, "index.js")
+  : join(__dirname, "dist", "index.js");
+
+import(indexPath);

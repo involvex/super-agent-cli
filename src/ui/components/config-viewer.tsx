@@ -10,10 +10,15 @@ interface ConfigInfo {
 
 interface ConfigViewerProps {
   config: ConfigInfo;
-  isVisible: boolean;
+  isVisible?: boolean;
+  onClose?: () => void;
 }
 
-export function ConfigViewer({ config, isVisible }: ConfigViewerProps) {
+export function ConfigViewer({
+  config,
+  isVisible = true,
+  onClose,
+}: ConfigViewerProps) {
   if (!isVisible) {
     return null;
   }

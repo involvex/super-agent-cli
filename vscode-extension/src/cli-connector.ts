@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import WebSocket from "ws";
+import { WebSocket } from "ws";
 
 export interface CLIMessage {
   type: string;
@@ -8,7 +8,7 @@ export interface CLIMessage {
 }
 
 export interface CLIResponse {
-  type: "message" | "error" | "status" | "file_context";
+  type: string;
   content?: any;
   error?: string;
 }
@@ -41,45 +41,63 @@ export class CLIConnector {
     const settings = this.loadSettings();
     const wsUrl = `ws://${settings.cliHost}:${settings.cliPort}`;
 
-    console.log(`[Super Agent] Connecting to ${wsUrl}...`);
+    console.log(`[Super Agent] Attempting to connect to ${wsUrl}...`);
 
     return new Promise((resolve, reject) => {
       try {
+        if (this.ws) {
+          this.ws.terminate();
+        }
+
         this.ws = new WebSocket(wsUrl);
 
+        const connectionTimeout = setTimeout(() => {
+          if (!this.isConnected) {
+            this.ws?.terminate();
+            reject(new Error("Connection timed out"));
+          }
+        }, 5000);
+
         this.ws.on("open", () => {
-          console.log(`[Super Agent] Connected to CLI at ${wsUrl}`);
+          clearTimeout(connectionTimeout);
+          console.log(
+            `[Super Agent] Successfully connected to CLI at ${wsUrl}`,
+          );
           this.isConnected = true;
-          this.reconnectAttempts = 0; // Reset on successful connection
-          this.hasShownConnectionError = false; // Reset error flag
+          this.reconnectAttempts = 0;
+          this.hasShownConnectionError = false;
           this.notifyStatusChange(true);
           this.clearReconnectTimer();
           resolve(true);
         });
 
         this.ws.on("error", error => {
-          console.error(`[Super Agent] Connection error:`, error);
+          clearTimeout(connectionTimeout);
+          console.error(`[Super Agent] WebSocket error:`, error);
           this.isConnected = false;
           this.notifyStatusChange(false);
-          // Only show error message on first attempt, not on retries
+
           if (this.reconnectAttempts === 0 && !this.hasShownConnectionError) {
             this.showConnectionError();
             this.hasShownConnectionError = true;
           }
           this.scheduleReconnect();
-          reject(new Error("Connection failed"));
+          reject(error);
         });
 
-        this.ws.on("close", () => {
-          console.log(`[Super Agent] Connection closed`);
+        this.ws.on("close", (code, reason) => {
+          console.log(`[Super Agent] Connection closed: ${code} ${reason}`);
           this.isConnected = false;
           this.notifyStatusChange(false);
-          this.scheduleReconnect();
+          if (code !== 1000) {
+            this.scheduleReconnect();
+          }
         });
 
         this.ws.on("message", data => {
           try {
             const message: CLIResponse = JSON.parse(data.toString());
+            console.log(`[Super Agent] Received message: ${message.type}`);
             this.handleMessage(message);
           } catch (error) {
             console.error("Failed to parse CLI message:", error);
@@ -95,9 +113,9 @@ export class CLIConnector {
 
   disconnect(): void {
     this.clearReconnectTimer();
-    this.reconnectAttempts = this.maxReconnectAttempts; // Stop reconnect attempts
+    this.reconnectAttempts = this.maxReconnectAttempts;
     if (this.ws) {
-      this.ws.close();
+      this.ws.close(1000, "Normal closure");
       this.ws = null;
     }
     this.isConnected = false;
@@ -105,13 +123,54 @@ export class CLIConnector {
   }
 
   async startCLIServer(): Promise<void> {
-    const terminal = vscode.window.createTerminal("Super Agent CLI");
-    terminal.show();
-    terminal.sendText("super-agent web");
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const terminal = vscode.window.createTerminal({
+      name: "Super Agent CLI",
+      cwd: workspaceRoot,
+    });
 
-    // waiting for the server to start
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    this.connect().catch(() => {});
+    terminal.show();
+
+    // Explicitly use PowerShell on Windows to ensure our script works
+    if (process.platform === "win32") {
+      terminal.sendText(
+        "powershell -ExecutionPolicy Bypass -Command \"if (Test-Path 'super-agent.js') { bun super-agent.js web } else { super-agent web }\"",
+      );
+    } else {
+      terminal.sendText(
+        "if [ -f super-agent.js ]; then bun super-agent.js web; else super-agent web; fi",
+      );
+    }
+
+    // Give it more time to start up
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "Starting Super Agent CLI Server...",
+        cancellable: false,
+      },
+      async progress => {
+        for (let i = 0; i < 5; i++) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          progress.report({ increment: 20 });
+        }
+      },
+    );
+
+    this.resetConnectionState();
+    try {
+      await this.connect();
+      vscode.window.showInformationMessage("✓ Connected to Super Agent CLI");
+    } catch (e) {
+      const settings = this.loadSettings();
+      console.error(
+        `Failed to connect to ${settings.cliHost}:${settings.cliPort} after starting server:`,
+        e,
+      );
+      vscode.window.showErrorMessage(
+        `Failed to connect to CLI at ${settings.cliHost}:${settings.cliPort}. Please check the terminal for errors.`,
+      );
+    }
   }
 
   private async showConnectionError(): Promise<void> {
@@ -239,17 +298,16 @@ export class CLIConnector {
    * Send a message to the CLI
    */
   sendChatMessage(message: string, fileContexts?: string[]): void {
-    this.sendMessage("chat_message", {
-      message,
-      fileContexts,
-    });
+    // CLI expects 'prompt' type and string content
+    this.sendMessage("prompt", message);
   }
 
   /**
    * Request file content from CLI
    */
   requestFileContent(filePath: string): void {
-    this.sendMessage("get_file_content", { filePath });
+    // CLI expects 'path' parameter
+    this.sendMessage("get_file_content", { path: filePath });
   }
 
   /**

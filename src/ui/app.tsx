@@ -10,9 +10,12 @@ import { Box } from "ink";
 
 import { useCommandHistory } from "../hooks/use-command-history";
 import { useKeyboardInput } from "../hooks/use-keyboard-input";
+import { getSettingsManager } from "../utils/settings-manager";
 import { CommandHistory } from "./components/command-history";
+import { ConfigViewer } from "./components/config-viewer";
 import { CommandInput } from "./components/command-input";
 import { CommandHelp } from "./components/command-help";
+import { StatusBar } from "./components/statusbar";
 import { Header } from "./components/header";
 
 interface Props {
@@ -23,6 +26,9 @@ export default function App({ agent }: Props) {
   const [input, setInput] = useState("");
   const [confirmationOptions, setConfirmationOptions] =
     useState<ConfirmationOptions | null>(null);
+  const [showConfig, setShowConfig] = useState(false);
+  const [tokenCount, setTokenCount] = useState(0);
+  const [toolCallsCount, setToolCallsCount] = useState(0);
 
   const confirmationService = useMemo(
     () => ConfirmationService.getInstance(),
@@ -33,10 +39,29 @@ export default function App({ agent }: Props) {
     useCommandHistory();
 
   const handleSubmit = async (command: string) => {
+    // Handle slash commands
+    if (command.trim() === "/settings" || command.trim() === "/config") {
+      setShowConfig(true);
+      return;
+    }
+
     setIsProcessing(true);
     const result = await agent.processCommand(command);
     addEntry(command, result);
     setIsProcessing(false);
+  };
+
+  const currentSettings = getSettingsManager().getEffectiveSettings();
+  const configInfo = {
+    activeProvider: currentSettings.active_provider || "grok",
+    apiKeySet: !!getSettingsManager().getApiKey(),
+    baseUrl:
+      currentSettings.providers?.[currentSettings.active_provider || "grok"]
+        ?.base_url,
+    model:
+      currentSettings.providers?.[currentSettings.active_provider || "grok"]
+        ?.model,
+    theme: currentSettings.ui?.theme || "zinc",
   };
 
   useKeyboardInput(
@@ -45,8 +70,12 @@ export default function App({ agent }: Props) {
     handleSubmit,
     isProcessing,
     confirmationOptions,
+    () => {
+      if (showConfig) {
+        setShowConfig(false);
+      }
+    },
   );
-
   useEffect(() => {
     const handleConfirmationRequest = (options: ConfirmationOptions) => {
       setConfirmationOptions(options);
@@ -88,11 +117,28 @@ export default function App({ agent }: Props) {
     );
   }
 
+  if (showConfig) {
+    return (
+      <ConfigViewer config={configInfo} onClose={() => setShowConfig(false)} />
+    );
+  }
+
   return (
-    <Box flexDirection="column" padding={1}>
-      <Header />
-      <CommandHelp />
-      <CommandHistory history={history} />
+    <Box flexDirection="column" padding={1} height="100%">
+      <Box flexDirection="column" flexGrow={1}>
+        <Header />
+        <CommandHelp />
+        <CommandHistory history={history} />
+      </Box>
+
+      <StatusBar
+        currentModel={getSettingsManager().getCurrentModel()}
+        isProcessing={isProcessing}
+        tokenCount={tokenCount}
+        toolCallsCount={toolCallsCount}
+        contextSize={0} // TODO: Hook up real context size
+      />
+
       <CommandInput input={input} isProcessing={isProcessing} />
     </Box>
   );

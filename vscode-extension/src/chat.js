@@ -39,6 +39,7 @@ window.addEventListener("load", () => {
   }
 
   // Request file context on load
+  vscode.postMessage({ type: "ready" });
   vscode.postMessage({ type: "getFileContext" });
   vscode.postMessage({ type: "requestHistory" });
 });

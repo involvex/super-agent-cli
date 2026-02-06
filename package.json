@@ -28,7 +28,7 @@
   },
   "main": "dist/index.js",
   "bin": {
-    "super-agent": "super-agent.js"
+    "super-agent": "dist/super-agent.js"
   },
   "workspaces": [
     "@plugins/templates/*",
@@ -37,7 +37,7 @@
   ],
   "scripts": {
     "prebuild": "bun run format && bun run lint:fix && bun run typecheck",
-    "build": "bun build src/index.ts --outdir ./dist --target node --packages external --format esm && bun run copy-bin && bun run build:web",
+    "build": "bun build src/index.ts --outdir ./dist --target node --packages external --format esm && bun run copy-bin && bun run build:web && bun run build:plugins && bun run build:vscode && bun run package:vscode",
     "build:bun": "bun build src/index.ts --outdir ./dist --target node --packages external --format esm",
     "build:plugins": "bun run -F @involvex/super-agent\\* build",
     "build:vscode": "bun run -F super-agent-vscode build",
@@ -74,7 +74,6 @@
     "commander": "^14.0.3",
     "conventional-changelog-cli": "^5.0.0",
     "dotenv": "^17.2.3",
-    "enquirer": "^2.4.1",
     "firebase": "^12.8.0",
     "fs-extra": "^11.3.3",
     "ignore": "^7.0.5",

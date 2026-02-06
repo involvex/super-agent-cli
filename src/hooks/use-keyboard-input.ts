@@ -10,6 +10,7 @@ export function useKeyboardInput(
   onSubmit: (command: string) => Promise<void>,
   isProcessing: boolean,
   confirmationOptions: unknown,
+  onEscape?: () => void,
 ) {
   useInput(
     useCallback(
@@ -21,6 +22,13 @@ export function useKeyboardInput(
 
         if (key.ctrl && inputChar === "c") {
           process.exit(0);
+        }
+
+        if (key.escape) {
+          if (onEscape) {
+            onEscape();
+          }
+          return;
         }
 
         if (key.return) {
