@@ -1,3 +1,9 @@
+## [0.0.88](https://github.com/involvex/super-agent-cli/compare/v0.0.87...v0.0.88) (2026-02-06)
+
+### Features
+
+- **cli:** add status bar configuration command ([3ac5f18](https://github.com/involvex/super-agent-cli/commit/3ac5f18e9d09d20b59adaa6bd784c2d98522a531))
+
 ## [0.0.87](https://github.com/involvex/super-agent-cli/compare/v0.0.86...v0.0.87) (2026-02-06)
 
 ## [0.0.86](https://github.com/involvex/super-agent-cli/compare/v0.0.85...v0.0.86) (2026-02-06)
