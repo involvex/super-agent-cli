@@ -1,3 +1,5 @@
+## [0.0.91](https://github.com/involvex/super-agent-cli/compare/v0.0.90...v0.0.91) (2026-02-06)
+
 ## [0.0.90](https://github.com/involvex/super-agent-cli/compare/v0.0.89...v0.0.90) (2026-02-06)
 
 ## [0.0.89](https://github.com/involvex/super-agent-cli/compare/v0.0.88...v0.0.89) (2026-02-06)
