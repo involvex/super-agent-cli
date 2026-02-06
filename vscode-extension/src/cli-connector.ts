@@ -104,10 +104,28 @@ export class CLIConnector {
     this.notifyStatusChange(false);
   }
 
-  private showConnectionError(): void {
-    vscode.window.showWarningMessage(
-      "Could not connect to Super Agent CLI. Please run 'super-agent web' in your project directory.",
+  async startCLIServer(): Promise<void> {
+    const terminal = vscode.window.createTerminal("Super Agent CLI");
+    terminal.show();
+    terminal.sendText("super-agent web");
+
+    // waiting for the server to start
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    this.connect().catch(() => {});
+  }
+
+  private async showConnectionError(): Promise<void> {
+    const selection = await vscode.window.showWarningMessage(
+      "Could not connect to Super Agent CLI.",
+      "Start CLI Server",
+      "Retry",
     );
+
+    if (selection === "Start CLI Server") {
+      this.startCLIServer();
+    } else if (selection === "Retry") {
+      this.connect();
+    }
   }
 
   private scheduleReconnect(): void {

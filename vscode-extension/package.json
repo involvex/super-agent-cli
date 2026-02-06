@@ -21,7 +21,7 @@
     "compile": "tsc -p ./",
     "copy-assets": "node build.js",
     "lint": "eslint src --ext ts",
-    "package": "vsce package --no-dependencies",
+    "package": "bun run build && vsce package --no-dependencies",
     "typecheck": "tsc --noEmit",
     "vscode:prepublish": "npm run compile && npm run copy-assets",
     "watch": "tsc -w -p ./"
@@ -36,6 +36,11 @@
       {
         "command": "super-agent.reconnect",
         "title": "Reconnect to CLI",
+        "icon": "icon.png"
+      },
+      {
+        "command": "super-agent.startServer",
+        "title": "Start CLI Server",
         "icon": "icon.png"
       },
       {

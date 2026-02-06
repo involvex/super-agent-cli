@@ -76,6 +76,14 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(reconnectCommand);
 
+  const startServerCommand = vscode.commands.registerCommand(
+    "super-agent.startServer",
+    async () => {
+      await cliConnector.startCLIServer();
+    },
+  );
+  context.subscriptions.push(startServerCommand);
+
   const askAICommand = vscode.commands.registerCommand(
     "super-agent.askAI",
     async () => {
