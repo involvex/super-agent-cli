@@ -70,7 +70,7 @@
     "@google/generative-ai": "^0.24.1",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@types/mime": "^4.0.0",
-    "axios": "^1.13.4",
+    "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
     "cfonts": "^3.3.1",
     "chalk": "^5.6.2",
