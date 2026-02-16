@@ -27,7 +27,7 @@ jobs:
         run: bun audit --audit-level=high
 
       - name: Scan for Secrets
-        uses: trufflesecurity/trufflehog@v3.92.5
+        uses: trufflesecurity/trufflehog@v3.93.3
         with:
           path: ./
           baseRef: ${{ github.event.pull_request.base.ref || github.ref }}
