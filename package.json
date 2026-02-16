@@ -81,7 +81,7 @@
     "fs-extra": "^11.3.3",
     "ignore": "^7.0.5",
     "ink": "^6.6.0",
-    "inquirer": "^13.2.2",
+    "inquirer": "^13.2.4",
     "marked": "^17.0.1",
     "marked-terminal": "^7.3.0",
     "mime": "^4.1.0",
