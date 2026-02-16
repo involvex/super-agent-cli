@@ -80,7 +80,7 @@
     "firebase": "^12.9.0",
     "fs-extra": "^11.3.3",
     "ignore": "^7.0.5",
-    "ink": "^6.6.0",
+    "ink": "^6.7.0",
     "inquirer": "^13.2.2",
     "marked": "^17.0.1",
     "marked-terminal": "^7.3.0",
