@@ -64,7 +64,9 @@
     "typecheck": "tsc --noEmit"
   },
   "overrides": {
-    "@modelcontextprotocol/sdk": "^1.26.0"
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "axios": "^1.13.5",
+    "minimatch": "^10.2.2"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
