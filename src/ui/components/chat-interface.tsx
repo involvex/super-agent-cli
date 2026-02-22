@@ -52,7 +52,7 @@ function ChatInterfaceWithAgent({
     useState<ConfirmationOptions | null>(null);
   const [toolCallsCount, setToolCallsCount] = useState(0);
   const [showStatusBar, setShowStatusBar] = useState(false);
-  const scrollRef = useRef<any>();
+  const scrollRef = useRef<any>(null);
   const processingStartTime = useRef<number>(0);
 
   const confirmationService = ConfirmationService.getInstance();
