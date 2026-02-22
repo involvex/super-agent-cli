@@ -86,7 +86,7 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.109.0"
   },
   "icon": "icon.png",
   "configuration": {
