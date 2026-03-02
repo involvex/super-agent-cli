@@ -79,7 +79,7 @@
     "ws": "^8.19.0"
   },
   "devDependencies": {
-    "@types/node": "^25.3.0",
+    "@types/node": "^25.3.3",
     "@types/vscode": "^1.109.0",
     "@types/ws": "^8.18.1",
     "@vscode/vsce": "^3.7.1",
