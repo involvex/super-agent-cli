@@ -70,7 +70,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@types/mime": "^4.0.0",
     "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
