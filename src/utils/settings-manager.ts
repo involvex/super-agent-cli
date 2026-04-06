@@ -96,6 +96,9 @@ export const PROVIDER_MODELS: Record<string, string[]> = {
     "c4ai-aya-expanse-8b",
     "c4ai-aya-13b",
   ],
+  "kilo-gateway": [],
+  "opencode-zen": [],
+  cline: [],
 };
 
 export interface ProviderConfig {
@@ -186,6 +189,10 @@ export interface UserSettings {
     model: string; // e.g., "dall-e-3", "imagen-3.0-generate-001"
     output_dir: string; // Directory to save images (default: "./generated-images")
     default_format?: "png" | "jpeg" | "webp"; // Default image format
+  };
+  pricing_api?: {
+    url: string;
+    enabled: boolean;
   };
   settingsVersion?: number;
 }
@@ -316,6 +323,30 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
       base_url: "https://api.cohere.ai/v1",
       default_model: "command-r-plus-08-2024",
     },
+    "kilo-gateway": {
+      id: "kilo-gateway",
+      provider: "kilo-gateway",
+      model: "",
+      api_key: "",
+      base_url: "https://api.kilo.ai/api/gateway",
+      default_model: "",
+    },
+    "opencode-zen": {
+      id: "opencode-zen",
+      provider: "opencode-zen",
+      model: "",
+      api_key: "",
+      base_url: "https://opencode.ai/zen/v1",
+      default_model: "",
+    },
+    cline: {
+      id: "cline",
+      provider: "cline",
+      model: "",
+      api_key: "",
+      base_url: "https://api.cline.bot/api/v1",
+      default_model: "",
+    },
   },
   ui: {
     theme: "dark",
@@ -360,7 +391,10 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
     output_dir: "./generated-images",
     default_format: "png",
   },
-  settingsVersion: SETTINGS_VERSION,
+  pricing_api: {
+    url: "https://models.dev/api.json",
+    enabled: true,
+  },
 };
 
 const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {};
@@ -380,6 +414,20 @@ interface ModelsCacheEntry {
 
 interface ModelsCache {
   [providerId: string]: ModelsCacheEntry;
+}
+
+export interface ModelMetadata {
+  model: string;
+  provider: string;
+  input_price?: number;
+  output_price?: number;
+  context_window?: number;
+}
+
+interface PricingCache {
+  models: ModelMetadata[];
+  timestamp: number;
+  ttl: number;
 }
 
 export class SettingsManager {
@@ -767,6 +815,125 @@ export class SettingsManager {
         fs.unlinkSync(this.modelsCachePath);
       }
     }
+  }
+
+  // --- Pricing API ---
+
+  private pricingCachePath: string = path.join(
+    os.homedir(),
+    ".super-agent",
+    "pricing-cache.json",
+  );
+  private pricingInMemoryCache: Map<string, ModelMetadata[]> = new Map();
+
+  private loadPricingCache(): PricingCache | null {
+    try {
+      if (fs.existsSync(this.pricingCachePath)) {
+        const content = fs.readFileSync(this.pricingCachePath, "utf-8");
+        return JSON.parse(content);
+      }
+    } catch (error) {
+      // Ignore cache errors
+    }
+    return null;
+  }
+
+  private savePricingCache(cache: PricingCache): void {
+    try {
+      this.ensureDirectoryExists(this.pricingCachePath);
+      fs.writeFileSync(this.pricingCachePath, JSON.stringify(cache, null, 2));
+    } catch (error) {
+      // Ignore cache save errors
+    }
+  }
+
+  public async fetchPricingData(
+    forceRefresh: boolean = false,
+  ): Promise<ModelMetadata[]> {
+    // Check in-memory cache first
+    if (!forceRefresh && this.pricingInMemoryCache.has("all")) {
+      return this.pricingInMemoryCache.get("all")!;
+    }
+
+    // Check disk cache
+    if (!forceRefresh) {
+      const cache = this.loadPricingCache();
+      const now = Date.now();
+      if (cache && now - cache.timestamp < cache.ttl) {
+        this.pricingInMemoryCache.set("all", cache.models);
+        return cache.models;
+      }
+    }
+
+    // Fetch from API
+    let models: ModelMetadata[] = [];
+    try {
+      const response = await fetch("https://models.dev/api.json");
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          models = data
+            .map((item: any) => ({
+              model: item.model || item.id || "",
+              provider: item.provider || "",
+              input_price: item.input_price || item.pricing?.input || undefined,
+              output_price:
+                item.output_price || item.pricing?.output || undefined,
+              context_window:
+                item.context_window || item.context?.max || undefined,
+            }))
+            .filter((m: ModelMetadata) => m.model && m.provider);
+        }
+      }
+    } catch (error) {
+      // Silently fail - return empty
+    }
+
+    // Update caches
+    this.pricingInMemoryCache.set("all", models);
+
+    const cache: PricingCache = {
+      models,
+      timestamp: Date.now(),
+      ttl: 24 * 60 * 60 * 1000, // 24 hours
+    };
+    this.savePricingCache(cache);
+
+    return models;
+  }
+
+  public getModelMetadata(
+    modelId: string,
+    providerId: string,
+  ): ModelMetadata | undefined {
+    const cached = this.pricingInMemoryCache.get("all");
+    if (!cached) {
+      return undefined;
+    }
+
+    return cached.find(
+      m =>
+        m.model === modelId ||
+        m.model.includes(modelId) ||
+        modelId.includes(m.model),
+    );
+  }
+
+  public getProviderModelsWithMetadata(providerId: string): ModelMetadata[] {
+    const cached = this.pricingInMemoryCache.get("all");
+    if (!cached) {
+      return [];
+    }
+
+    return cached.filter(m => {
+      const providerLower = providerId.toLowerCase();
+      const providerConfig = this.getEffectiveSettings().providers[providerId];
+      return (
+        m.provider.toLowerCase().includes(providerLower) ||
+        providerLower.includes(m.provider.toLowerCase()) ||
+        (providerConfig && m.provider.toLowerCase() === providerConfig.provider)
+      );
+    });
   }
 }
 

@@ -176,6 +176,27 @@ export class SuperAgent extends EventEmitter {
         effectiveBaseURL,
         effectiveModel,
       );
+    } else if (providerType === "kilo-gateway") {
+      this.superAgentClient = new OpenAICompatibleProvider(
+        effectiveApiKey,
+        effectiveBaseURL || "https://api.kilo.ai/api/gateway",
+        effectiveModel,
+        "kilo-gateway",
+      );
+    } else if (providerType === "opencode-zen") {
+      this.superAgentClient = new OpenAICompatibleProvider(
+        effectiveApiKey,
+        effectiveBaseURL || "https://opencode.ai/zen/v1",
+        effectiveModel,
+        "opencode-zen",
+      );
+    } else if (providerType === "cline") {
+      this.superAgentClient = new OpenAICompatibleProvider(
+        effectiveApiKey,
+        effectiveBaseURL || "https://api.cline.bot/api/v1",
+        effectiveModel,
+        "cline",
+      );
     } else {
       // Default to OpenAI Compatible for all other providers (mistral, openrouter, etc.)
       this.superAgentClient = new OpenAICompatibleProvider(

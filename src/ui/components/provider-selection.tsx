@@ -80,7 +80,7 @@ export function ProviderSelection({
         borderRight={false}
       >
         <Text color="gray" dimColor>
-          ↑↓ navigate • Enter select • Esc cancel
+          ↑↓ navigate • Enter select • Esc switch to models • Shift+M models
         </Text>
       </Box>
     </Box>

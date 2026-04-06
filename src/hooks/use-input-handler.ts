@@ -80,6 +80,9 @@ export function useInputHandler({
 
   const [showProviderSelection, setShowProviderSelection] = useState(false);
   const [selectedProviderIndex, setSelectedProviderIndex] = useState(0);
+  const [unifiedPickerMode, setUnifiedPickerMode] = useState<
+    "providers" | "models"
+  >("providers");
 
   const [showConfigViewer, setShowConfigViewer] = useState(false);
   const [customCommandsVersion, setCustomCommandsVersion] = useState(0);
@@ -238,6 +241,26 @@ export function useInputHandler({
     }
 
     // Handle provider selection navigation
+    // Unified picker: Shift+P for providers, Shift+M for models
+    if (showProviderSelection || showModelSelection) {
+      // Shift+P - switch to providers view
+      if (key.shift && (char === "p" || char === "P")) {
+        setUnifiedPickerMode("providers");
+        setShowProviderSelection(true);
+        setShowModelSelection(false);
+        setSelectedProviderIndex(0);
+        return true;
+      }
+      // Shift+M - switch to models view
+      if (key.shift && (char === "m" || char === "M")) {
+        setUnifiedPickerMode("models");
+        setShowModelSelection(true);
+        setShowProviderSelection(false);
+        setSelectedModelIndex(0);
+        return true;
+      }
+    }
+
     if (showProviderSelection) {
       const manager = getSettingsManager();
       const settings = manager.loadUserSettings();
@@ -505,6 +528,14 @@ export function useInputHandler({
         setChatHistory(prev => [...prev, confirmEntry]);
         setShowModelSelection(false);
         setSelectedModelIndex(0);
+        return true;
+      }
+      // Escape in models view switches to providers view
+      if (key.escape) {
+        setUnifiedPickerMode("providers");
+        setShowModelSelection(false);
+        setShowProviderSelection(true);
+        setSelectedProviderIndex(0);
         return true;
       }
     }
@@ -1514,6 +1545,7 @@ Use /config set ui.statusbar_config.show_model true to toggle individual items.
     }
 
     if (trimmedInput === "/provider") {
+      setUnifiedPickerMode("providers");
       setShowProviderSelection(true);
       setSelectedProviderIndex(0);
       clearInput();
@@ -1521,12 +1553,28 @@ Use /config set ui.statusbar_config.show_model true to toggle individual items.
     }
 
     if (trimmedInput === "/provider config") {
+      const manager = getSettingsManager();
+      const settings = manager.loadUserSettings();
+      const providerIds = Object.keys(settings.providers || {});
+      const activeProvider = settings.active_provider;
+
+      let guideMsg =
+        "⚠️ Interactive configuration cannot be run inside the chat session.\n\n";
+      guideMsg += "To configure a provider, use these commands:\n";
+      guideMsg +=
+        "• `super-agent provider config` - Interactive setup (recommended)\n";
+      guideMsg += "• `/provider set-key <provider> <api_key>` - Set API key\n";
+      guideMsg += "• `/provider set-url <provider> <url>` - Set base URL\n";
+      guideMsg +=
+        "• `/provider set-model <provider> <model>` - Set default model\n";
+      guideMsg += "\nAvailable providers: " + providerIds.join(", ") + "\n";
+      guideMsg += "Active provider: " + activeProvider;
+
       setChatHistory(prev => [
         ...prev,
         {
           type: "assistant",
-          content:
-            "⚠️ Interactive configuration cannot be run inside the chat session.\n\nPlease run `super-agent provider config` in a separate terminal, or use:\n`/provider set-key <provider> <key>` to set an API key directly.",
+          content: guideMsg,
           timestamp: new Date(),
         },
       ]);
@@ -1986,6 +2034,7 @@ Use /config set ui.statusbar_config.show_model true to toggle individual items.
     }
 
     if (trimmedInput === "/models") {
+      setUnifiedPickerMode("models");
       setShowModelSelection(true);
       setSelectedModelIndex(0);
       clearInput();
@@ -3027,6 +3076,7 @@ Respond with ONLY the commit message, no additional text.`;
     selectedPaletteIndex,
     showProviderSelection,
     selectedProviderIndex,
+    unifiedPickerMode,
     showConfigViewer,
   };
 }

@@ -47,7 +47,8 @@ export function ModelSelection({
       ))}
       <Box marginTop={1}>
         <Text color="gray" dimColor>
-          ↑↓ navigate • Enter/Tab select • Esc cancel
+          ↑↓ navigate • Enter/Tab select • Esc switch to providers • Shift+P
+          providers
         </Text>
       </Box>
     </Box>
