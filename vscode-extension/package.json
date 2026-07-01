@@ -76,13 +76,13 @@
     "onStartupFinished"
   ],
   "dependencies": {
-    "ws": "^8.20.0"
+    "ws": "^8.21.0"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2",
+    "@types/node": "^25.9.4",
     "@types/vscode": "^1.110.0",
     "@types/ws": "^8.18.1",
-    "@vscode/vsce": "^3.7.1",
+    "@vscode/vsce": "^3.9.2",
     "typescript": "^5.9.3"
   },
   "engines": {

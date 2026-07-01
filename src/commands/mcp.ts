@@ -165,9 +165,7 @@ export function createMCPCommand(): Command {
         if (config.transport) {
           if (typeof config.transport === "string") {
             serverConfig.transport.type = config.transport as
-              | "stdio"
-              | "http"
-              | "sse";
+              "stdio" | "http" | "sse";
           } else if (typeof config.transport === "object") {
             serverConfig.transport = {
               ...serverConfig.transport,

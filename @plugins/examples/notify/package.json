@@ -18,10 +18,10 @@
     "dev": "tsc --watch"
   },
   "devDependencies": {
-    "@types/node": "^20.19.39",
+    "@types/node": "^20.19.43",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
-    "@involvex/super-agent-cli": ">=0.0.58"
+    "@involvex/super-agent-cli": ">=0.0.94"
   }
 }
